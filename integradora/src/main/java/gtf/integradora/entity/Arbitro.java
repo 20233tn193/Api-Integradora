@@ -1,5 +1,7 @@
 package gtf.integradora.entity;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -7,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Arbitro {
     @Id
     private String id;
+    private List<String> roles;
     private String nombre;
     private String apellido;
     private String celular;
@@ -27,6 +30,14 @@ public class Arbitro {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     public void setNombre(String nombre) {

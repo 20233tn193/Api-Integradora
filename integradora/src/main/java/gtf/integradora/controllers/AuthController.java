@@ -24,11 +24,11 @@ import org.springframework.security.core.userdetails.User;
 public class AuthController {
 
     private final JwtTokenUtil jwtTokenUtil;
-    @SuppressWarnings("unused")
     private final UsuarioRepository usuarioRepository;
     private final AuthenticationManager authenticationManager;
 
-    public AuthController(JwtTokenUtil jwtTokenUtil, UsuarioRepository usuarioRepository, AuthenticationManager authenticationManager) {
+    public AuthController(JwtTokenUtil jwtTokenUtil, UsuarioRepository usuarioRepository,
+            AuthenticationManager authenticationManager) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.usuarioRepository = usuarioRepository;
         this.authenticationManager = authenticationManager;
@@ -38,16 +38,19 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
             if (authentication.getPrincipal() instanceof User) {
                 User user = (User) authentication.getPrincipal();
-                String token = jwtTokenUtil.generarToken(authentication.getName(), 
-                    user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+                String token = jwtTokenUtil.generarToken(authentication.getName(),
+                        user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                                .collect(Collectors.toList()));
 
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
+                response.put("rol", user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(",")));
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid user"));

@@ -1,5 +1,7 @@
 package gtf.integradora.entity;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,6 +10,7 @@ public class Dueno {
     @Id
     private String id;
 
+    private List<String> roles;
     private String nombre;
     private String apellido;
     private String correo;
@@ -19,6 +22,14 @@ public class Dueno {
 
     public String getId() {
         return id;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     public void setId(String id) {

@@ -1,5 +1,7 @@
 package gtf.integradora.entity;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,6 +10,7 @@ public class Administrador {
     @Id
     private String id;
 
+    private List<String> roles;
     private String nombre;
     private String correo;
     private String password; // Idealmente encriptado
@@ -53,5 +56,13 @@ public class Administrador {
 
     public void setEliminado(boolean eliminado) {
         this.eliminado = eliminado;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 }

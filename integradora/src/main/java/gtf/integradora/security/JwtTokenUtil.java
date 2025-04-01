@@ -16,6 +16,7 @@ public class JwtTokenUtil {
     private String secretKey = "QrOK4gu5BjD8UKP/W7Mz4El94HvBBXWVGV7+mcZbKOFfpNLZvUlMi2YDkoBBLjwNaxSsQpry4QNaGT1VLSvi+A==";
 
     // Generar el token JWT
+    @SuppressWarnings("deprecation")
     public String generarToken(String username, List<String> roles) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes()); // Convertir la clave secreta en un SecretKey
 
@@ -29,6 +30,7 @@ public class JwtTokenUtil {
     }
 
     // Obtener los claims desde el token
+    @SuppressWarnings("deprecation")
     public Claims obtenerClaims(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes()); // Convertir la clave secreta en un SecretKey
 
@@ -45,6 +47,7 @@ public class JwtTokenUtil {
     }
 
     // Obtener los roles del token
+    @SuppressWarnings("unchecked")
     public List<String> obtenerRoles(String token) {
         return (List<String>) obtenerClaims(token).get("roles");
     }

@@ -37,9 +37,12 @@ public class PartidoService {
     private final GoleadorRepository goleadorRepository;
     private final TarjetaRepository tarjetaRepository;
     private final EquipoRepository equipoRepository;
+    @SuppressWarnings("unused")
     private final CampoRepository campoRepository;
+    @SuppressWarnings("unused")
     private final ArbitroRepository arbitroRepository;
     private final TorneoRepository torneoRepository;
+    @SuppressWarnings("unused")
     private final PartidoScheduler partidoScheduler;
 
     public PartidoService(
@@ -260,6 +263,7 @@ public class PartidoService {
      */
 
     // Método para obtener los equipos ganadores
+    @SuppressWarnings("unused")
     private List<Equipo> obtenerEquiposGanadores(List<Equipo> equipos, int jornadaActual) {
         return equipos.stream()
                 .filter(equipo -> equipo.getPartidosGanados() > equipo.getPartidosPerdidos()) // Aquí es una
@@ -268,6 +272,7 @@ public class PartidoService {
     }
 
     // Método para obtener los equipos perdedores
+    @SuppressWarnings("unused")
     private List<Equipo> obtenerEquiposPerdedores(List<Equipo> equipos, int jornadaActual) {
         return equipos.stream()
                 .filter(equipo -> equipo.getPartidosPerdidos() > equipo.getPartidosGanados()) // Aquí es una
@@ -276,6 +281,7 @@ public class PartidoService {
     }
 
     // Generar los enfrentamientos para la nueva jornada
+    @SuppressWarnings("unused")
     private List<Partido> generarEnfrentamientos(List<Equipo> ganadores, List<Equipo> perdedores, int jornada) {
         // Ejemplo básico de cómo emparejar a los equipos en partidos
         List<Partido> partidos = new ArrayList<>();

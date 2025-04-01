@@ -1,7 +1,6 @@
 package gtf.integradora.security;
 
 import java.util.stream.Collectors;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,11 +9,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import gtf.integradora.entity.Usuario;
 import gtf.integradora.repository.UsuarioRepository;
-
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -22,6 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @SuppressWarnings("unused")
     private final JwtTokenUtil jwtTokenUtil;
     private final UsuarioRepository usuarioRepository;
 
@@ -30,6 +27,7 @@ public class SecurityConfig {
         this.usuarioRepository = usuarioRepository;
     }
 
+    @SuppressWarnings("removal")
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()

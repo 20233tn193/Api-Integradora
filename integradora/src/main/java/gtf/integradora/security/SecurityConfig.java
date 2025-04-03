@@ -34,24 +34,6 @@ public class SecurityConfig {
                 return new BCryptPasswordEncoder();
         }
 
-        // Este se tiene que COMENTAR despues de hacer las pruebas:
-
-        // @SuppressWarnings("removal")
-
-        // @Bean
-        // public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // http.csrf().disable()
-        // .authorizeHttpRequests(auth -> auth
-        // .requestMatchers("/**").permitAll() // Permite todo temporalmente
-        // )
-        // .formLogin(form -> form.disable()) // Desactiva login por formulario
-        // .logout(logout -> logout.disable()); // Desactiva logout también
-
-        // return http.build();
-        // }
-
-        // Este se debe DESCOMENTAR despues de hacer las pruebas:
-
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http.csrf().disable()

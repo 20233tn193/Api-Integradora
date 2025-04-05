@@ -20,4 +20,8 @@ public interface PagoRepository extends MongoRepository<Pago, String> {
     Optional<Pago> findByIdAndEliminadoFalse(String id);
 
     boolean existsByEquipoIdAndTorneoIdAndTipoAndEstatus(String equipoId, String torneoId, String tipo, String estatus);
+
+    List<Pago> findByEquipoIdAndEstatusAndEliminadoFalse(String equipoId, String estatus);
+
+    Optional<Pago> findByEquipoIdAndTorneoId(String equipoId, String torneoId);
 }

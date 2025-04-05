@@ -58,5 +58,8 @@ public class PagoService {
         pagoRepository.save(pago);
     }
 
-    
+    public boolean tienePagoAprobado(String equipoId) {
+        return !pagoRepository.findByEquipoIdAndEstatusAndEliminadoFalse(equipoId, "pagado").isEmpty();
+    }
+
 }

@@ -13,16 +13,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import gtf.integradora.dto.InscripcionRequestDTO;
 import gtf.integradora.entity.Equipo;
+import gtf.integradora.services.CredencialService;
 import gtf.integradora.services.EquipoService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/equipos")
 public class EquipoController {
 
     private final EquipoService equipoService;
+    private final CredencialService credencialService;
 
-    public EquipoController(EquipoService equipoService) {
+    public EquipoController(EquipoService equipoService, CredencialService credencialService) {
         this.equipoService = equipoService;
+        this.credencialService = credencialService;
     }
 
     @PostMapping
@@ -64,5 +69,22 @@ public class EquipoController {
     @PostMapping("/inscribirse")
     public ResponseEntity<String> inscribirEquipo(@RequestBody InscripcionRequestDTO request) {
         return ResponseEntity.ok(equipoService.inscribirEquipo(request));
+    }
+
+    @GetMapping("/{equipoId}/credenciales")
+    public ResponseEntity<byte[]> generarCredenciales(@PathVariable String equipoId) {
+        try {
+            byte[] pdfBytes = credencialService.generarCredenciales(equipoId);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=credenciales.pdf");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

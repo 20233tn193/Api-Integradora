@@ -13,6 +13,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+
 import gtf.integradora.entity.Usuario;
 import gtf.integradora.repository.UsuarioRepository;
 
@@ -44,11 +48,24 @@ public class SecurityConfig {
         return authBuilder.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOriginPattern("*"); // Permite cualquier origen
+        configuration.addAllowedMethod("*");         // Permite todos los métodos HTTP
+        configuration.addAllowedHeader("*");         // Permite todos los headers
+        configuration.setAllowCredentials(true);     // Permite credenciales
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     // 🔓 Configuración para desarrollo: todo permitido
     @Bean
     @Profile("dev")
     public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.cors().and().csrf().disable()
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable());
@@ -59,7 +76,7 @@ public class SecurityConfig {
     @Bean
     @Profile("prod")
     public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.cors().and().csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         // Swagger público
                         .requestMatchers(

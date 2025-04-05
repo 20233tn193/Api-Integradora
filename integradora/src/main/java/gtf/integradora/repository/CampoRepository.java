@@ -12,4 +12,6 @@ public interface CampoRepository extends MongoRepository<Campo, String> {
     List<Campo> findByEliminadoFalse();
 
     Optional<Campo> findByIdAndEliminadoFalse(String id);
+
+    List<Campo> findByDisponibleTrueAndEliminadoFalse();
 }

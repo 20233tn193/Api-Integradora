@@ -18,6 +18,8 @@ public class Campo {
 
     private boolean eliminado = false;
 
+    private boolean disponible = true;
+
     public Campo() {}
 
     public String getId() {
@@ -26,6 +28,14 @@ public class Campo {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isDisponible() {
+        return disponible;
+    }
+
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
     }
 
     public String getNombreCampo() {

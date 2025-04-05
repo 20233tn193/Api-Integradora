@@ -78,7 +78,7 @@ public class PartidoGeneratorService {
 
         List<Enfrentamiento> enfrentamientos = generarEnfrentamientos(ganadores, perdedores, nuevaJornada);
 
-        List<Campo> campos = campoRepository.findByEliminadoFalse();
+        List<Campo> campos = campoRepository.findByDisponibleTrueAndEliminadoFalse();
         List<Arbitro> arbitros = arbitroRepository.findByEliminadoFalse();
 
         List<Partido> nuevosPartidos = partidoScheduler.asignarPartidos(

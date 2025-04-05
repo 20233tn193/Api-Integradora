@@ -85,6 +85,7 @@ public class PartidoScheduler {
     private List<CanchaConCampo> obtenerCanchasDisponibles(List<Campo> campos) {
         List<CanchaConCampo> lista = new ArrayList<>();
         for (Campo campo : campos) {
+            if (!campo.isDisponible()) continue; // ⚠️ NUEVA LÍNEA: solo usamos campos disponibles
             for (Cancha cancha : campo.getCanchas()) {
                 lista.add(new CanchaConCampo(campo.getId(), campo.getNombreCampo(), cancha.getNombreCancha()));
             }

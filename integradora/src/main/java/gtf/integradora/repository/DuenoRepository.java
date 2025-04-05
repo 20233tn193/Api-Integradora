@@ -11,8 +11,6 @@ import gtf.integradora.entity.Dueno;
 @Repository
 public interface DuenoRepository extends MongoRepository<Dueno, String> {
 
-    Optional<Dueno> findByCorreoAndEliminadoFalse(String correo);
-
     Optional<Dueno> findByIdAndEliminadoFalse(String id);
 
     List<Dueno> findByEliminadoFalse();

@@ -1,7 +1,5 @@
 package gtf.integradora.entity;
 
-import java.util.List;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -10,12 +8,9 @@ public class Dueno {
     @Id
     private String id;
 
-    private List<String> roles;
+    private String idUsuario; // Relación con la colección usuarios
     private String nombre;
     private String apellido;
-    private String correo;
-    private String password;
-
     private boolean eliminado = false;
 
     public Dueno() {}
@@ -24,16 +19,16 @@ public class Dueno {
         return id;
     }
 
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
-    }
-
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
     public String getNombre() {
@@ -50,22 +45,6 @@ public class Dueno {
 
     public void setApellido(String apellido) {
         this.apellido = apellido;
-    }
-
-    public String getCorreo() {
-        return correo;
-    }
-
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public boolean isEliminado() {

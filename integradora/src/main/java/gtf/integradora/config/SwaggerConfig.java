@@ -16,20 +16,14 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("API - Gestión de Torneos de Fútbol")
                         .version("1.0")
-                        .description("Documentación de la API para el sistema Integradora GTF"));
+                        .description("Documentación de la API para el sistema Integradora GTF"))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(new io.swagger.v3.oas.models.Components()
+                        .addSecuritySchemes("bearerAuth",
+                                new SecurityScheme()
+                                        .name("bearerAuth")
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")));
     }
-
-    // @Bean
-    // public OpenAPI customOpenAPI() {
-    //     return new OpenAPI()
-    //             .info(new Info().title("API GTF").version("1.0").description("Documentación de la API"))
-    //             .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-    //             .components(new io.swagger.v3.oas.models.Components()
-    //                     .addSecuritySchemes("bearerAuth",
-    //                             new SecurityScheme()
-    //                                     .name("bearerAuth")
-    //                                     .type(SecurityScheme.Type.HTTP)
-    //                                     .scheme("bearer")
-    //                                     .bearerFormat("JWT")));
-    // }
 }

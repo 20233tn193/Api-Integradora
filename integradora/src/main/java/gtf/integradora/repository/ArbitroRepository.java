@@ -11,8 +11,6 @@ import gtf.integradora.entity.Arbitro;
 @Repository
 public interface ArbitroRepository extends MongoRepository<Arbitro, String> {
 
-    Optional<Arbitro> findByCorreoAndEliminadoFalse(String correo);
-
     Optional<Arbitro> findByIdAndEliminadoFalse(String id);
 
     List<Arbitro> findByEliminadoFalse();

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-
 import gtf.integradora.entity.Dueno;
 import gtf.integradora.repository.DuenoRepository;
 
@@ -30,18 +29,13 @@ public class DuenoService {
         return duenoRepository.findByIdAndEliminadoFalse(id);
     }
 
-    public Optional<Dueno> obtenerPorCorreo(String correo) {
-        return duenoRepository.findByCorreoAndEliminadoFalse(correo);
-    }
-
     public Dueno actualizarDueno(String id, Dueno actualizado) {
         Dueno dueno = duenoRepository.findByIdAndEliminadoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Dueño no encontrado"));
 
         dueno.setNombre(actualizado.getNombre());
         dueno.setApellido(actualizado.getApellido());
-        dueno.setCorreo(actualizado.getCorreo());
-        // No actualizamos la contraseña aquí por seguridad
+        // Ya no se modifica correo ni contraseña aquí
 
         return duenoRepository.save(dueno);
     }

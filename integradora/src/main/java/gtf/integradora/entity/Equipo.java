@@ -9,20 +9,17 @@ public class Equipo {
     private String id;
 
     private String nombre;
-    private String logoUrl; // nombre de la imagen o URL
-    private String duenoId; // ID del dueño que lo registró
-    private String torneoId; // ID del torneo en el que participa
+    private String logoUrl;
+    private String duenoId;
+    private String torneoId;
 
     private boolean eliminado = false;
 
-    // Atributos para almacenar partidos ganados y perdidos
     private int partidosGanados = 0;
     private int partidosPerdidos = 0;
 
-    // Constructor vacío
     public Equipo() {}
 
-    // Constructor con parámetros
     public Equipo(String nombre, String logoUrl, String duenoId, String torneoId) {
         this.nombre = nombre;
         this.logoUrl = logoUrl;
@@ -30,7 +27,6 @@ public class Equipo {
         this.torneoId = torneoId;
     }
 
-    // Getters y setters para los atributos
     public String getId() {
         return id;
     }

@@ -70,16 +70,16 @@ public class PartidoController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/registrar-resultado")
-    public ResponseEntity<Partido> registrarResultado(@RequestBody RegistroPartidoDTO datos,
+    @PutMapping("/registrar-resultado/{partidoId}")
+    public ResponseEntity<Partido> registrarResultado(@PathVariable String partidoId,
+            @RequestBody RegistroPartidoDTO datos,
             Authentication authentication) {
-        // Verificar que el usuario autenticado sea un árbitro
         if (!authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_ARBITRO"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Acceso denegado
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         try {
-            Partido partidoActualizado = partidoService.registrarResultado(datos);
+            Partido partidoActualizado = partidoService.registrarResultado(partidoId, datos.getRegistro());
             return ResponseEntity.ok(partidoActualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

@@ -44,6 +44,7 @@ public class PartidoService {
     private final TorneoRepository torneoRepository;
     @SuppressWarnings("unused")
     private final PartidoScheduler partidoScheduler;
+    private final PartidoGeneratorService partidoGeneratorService;
 
     public PartidoService(
             PartidoRepository partidoRepository,
@@ -55,7 +56,8 @@ public class PartidoService {
             CampoRepository campoRepository,
             ArbitroRepository arbitroRepository,
             TorneoRepository torneoRepository,
-            PartidoScheduler partidoScheduler) {
+            PartidoScheduler partidoScheduler,
+            PartidoGeneratorService partidoGeneratorService) {
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
         this.tablaPosicionRepository = tablaPosicionRepository;
@@ -66,6 +68,7 @@ public class PartidoService {
         this.torneoRepository = torneoRepository;
         this.tarjetaRepository = tarjetaRepository;
         this.partidoScheduler = partidoScheduler;
+        this.partidoGeneratorService = partidoGeneratorService;
     }
 
     public Partido crearPartido(Partido partido) {
@@ -298,49 +301,65 @@ public class PartidoService {
         return partidos;
     }
 
-    public Partido registrarResultado(RegistroPartidoDTO datos) {
-        Partido partido = partidoRepository.findByIdAndEliminadoFalse(datos.getPartidoId())
+    public Partido registrarResultado(String partidoId, List<RegistroJugador> registro) {
+        Partido partido = partidoRepository.findByIdAndEliminadoFalse(partidoId)
                 .orElseThrow(() -> new RuntimeException("Partido no encontrado"));
 
-        // Verificar si algún jugador tiene tarjeta roja en el partido anterior
-        for (RegistroJugador r : datos.getRegistro()) {
+        for (RegistroJugador r : registro) {
             Tarjeta tarjeta = tarjetaRepository.findByJugadorIdAndTorneoId(r.getJugadorId(), partido.getTorneoId())
                     .orElse(null);
 
-            // Si tiene al menos 1 tarjeta roja → queda suspendido para este partido
             if (tarjeta != null && tarjeta.getRojas() > 0) {
-                r.setSuspendido(true); // Marcar al jugador como suspendido
-                r.setAsistencia(false); // El árbitro no puede tomarle asistencia
+                r.setSuspendido(true);
+                r.setAsistencia(false);
             }
         }
 
-        // Guardar el registro recibido
-        partido.setRegistro(datos.getRegistro());
+        partido.setRegistro(registro);
         partido.setEstado("finalizado");
         partidoRepository.save(partido);
 
-        // Calcular goles por equipo
-        int golesEquipoA = contarGolesPorEquipo(partido.getRegistro(), partido.getEquipoAId());
-        int golesEquipoB = contarGolesPorEquipo(partido.getRegistro(), partido.getEquipoBId());
+        int golesEquipoA = contarGolesPorEquipo(registro, partido.getEquipoAId());
+        int golesEquipoB = contarGolesPorEquipo(registro, partido.getEquipoBId());
 
-        // Guardar goles en el partido
         partido.setGolesEquipoA(golesEquipoA);
         partido.setGolesEquipoB(golesEquipoB);
         partidoRepository.save(partido);
 
-        // Determinar ganador y perdedor
         boolean ganaA = golesEquipoA > golesEquipoB;
         boolean ganaB = golesEquipoB > golesEquipoA;
 
-        // Actualizar tabla de posiciones
         actualizarTablaPosiciones(partido.getEquipoAId(), golesEquipoA, golesEquipoB, ganaA, partido.getTorneoId());
         actualizarTablaPosiciones(partido.getEquipoBId(), golesEquipoB, golesEquipoA, ganaB, partido.getTorneoId());
 
-        // Actualizar goleadores y tarjetas
-        actualizarGoleadores(partido.getRegistro(), partido.getTorneoId());
-        actualizarTarjetas(partido.getRegistro(), partido.getTorneoId());
+        actualizarGoleadores(registro, partido.getTorneoId());
+        actualizarTarjetas(registro, partido.getTorneoId());
 
+        verificarYGenerarSiguienteJornada(partido.getTorneoId());
         return partido;
+    }
+
+    // Agregue este metodo para hacer automatico la generacion
+    //de jornadas - Abril 03 - 3:41 am
+
+    public void verificarYGenerarSiguienteJornada(String torneoId) {
+        List<Partido> partidos = partidoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
+        if (partidos.isEmpty())
+            return;
+
+        int jornadaActual = partidos.stream()
+                .mapToInt(Partido::getJornada)
+                .max()
+                .orElse(0);
+
+        boolean todosFinalizados = partidos.stream()
+                .filter(p -> p.getJornada() == jornadaActual)
+                .allMatch(p -> "finalizado".equalsIgnoreCase(p.getEstado()));
+
+        if (todosFinalizados) {
+            partidoGeneratorService.generarSiguienteJornada(torneoId);
+            System.out.println("✅ Nueva jornada generada automáticamente");
+        }
     }
 
     public List<Jugador> obtenerJugadoresSuspendidos(String torneoId) {

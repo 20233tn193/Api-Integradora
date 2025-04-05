@@ -37,12 +37,10 @@ public class EstadisticasController {
         this.partidoService = partidoService;
     }
 
-    // 🏆 Tabla de posiciones por torneo
     @GetMapping("/tabla-posiciones/{torneoId}")
     public ResponseEntity<List<TablaPosicion>> obtenerTablaPosiciones(@PathVariable String torneoId) {
         List<TablaPosicion> tabla = tablaPosicionRepository.findByTorneoIdAndEliminadoFalse(torneoId);
 
-        // 🛠️ Aquí aplicas la mejora de ordenamiento
         tabla.sort((a, b) -> {
             int cmp = Integer.compare(b.getPuntos(), a.getPuntos());
             if (cmp == 0)
@@ -55,7 +53,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(tabla);
     }
 
-    // ⚽ Goleadores por torneo (TOP 10)
     @GetMapping("/goleadores/{torneoId}")
     public ResponseEntity<List<Goleador>> obtenerGoleadores(@PathVariable String torneoId) {
         List<Goleador> goleadores = goleadorRepository.findByTorneoIdAndEliminadoFalse(torneoId);
@@ -81,7 +78,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(respuesta);
     }
 
-    // 🟥 Jugadores suspendidos por tarjetas rojas
     @GetMapping("/jugadores-suspendidos/{torneoId}")
     public ResponseEntity<List<Jugador>> obtenerJugadoresSuspendidos(@PathVariable String torneoId) {
         List<Jugador> suspendidos = partidoService.obtenerJugadoresSuspendidos(torneoId);

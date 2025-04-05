@@ -1,7 +1,5 @@
 package gtf.integradora.entity;
 
-import java.util.List;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,13 +7,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Arbitro {
     @Id
     private String id;
-    private List<String> roles;
+
+    private String idUsuario; // Relación con la colección usuarios
     private String nombre;
     private String apellido;
     private String celular;
-    private String correo;
-    private String password;
-    private String fotoUrl; // Ruta o URL de la imagen cargada
+    private String fotoUrl;
     private boolean eliminado = false;
 
     public Arbitro() {}
@@ -28,16 +25,16 @@ public class Arbitro {
         this.id = id;
     }
 
+    public String getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
     public String getNombre() {
         return nombre;
-    }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
     }
 
     public void setNombre(String nombre) {
@@ -60,22 +57,6 @@ public class Arbitro {
         this.celular = celular;
     }
 
-    public String getCorreo() {
-        return correo;
-    }
-
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getFotoUrl() {
         return fotoUrl;
     }
@@ -90,5 +71,5 @@ public class Arbitro {
 
     public void setEliminado(boolean eliminado) {
         this.eliminado = eliminado;
-    }    
+    }
 }

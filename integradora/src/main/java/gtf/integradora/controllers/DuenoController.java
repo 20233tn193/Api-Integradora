@@ -1,18 +1,13 @@
 package gtf.integradora.controllers;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import gtf.integradora.entity.Dueno;
+import gtf.integradora.entity.Usuario;
+import gtf.integradora.repository.UsuarioRepository;
 import gtf.integradora.services.DuenoService;
 
 @RestController
@@ -20,17 +15,26 @@ import gtf.integradora.services.DuenoService;
 public class DuenoController {
 
     private final DuenoService duenoService;
+    private final UsuarioRepository usuarioRepository;
 
-    public DuenoController(DuenoService duenoService) {
+    public DuenoController(DuenoService duenoService, UsuarioRepository usuarioRepository) {
         this.duenoService = duenoService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @PostMapping
-    public ResponseEntity<Dueno> crear(@RequestBody Dueno dueno) {
-        if (duenoService.obtenerPorCorreo(dueno.getCorreo()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+    public ResponseEntity<?> crear(@RequestBody Dueno dueno) {
+        if (dueno.getIdUsuario() == null) {
+            return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
         }
-        return ResponseEntity.ok(duenoService.crearDueno(dueno));
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(dueno.getIdUsuario());
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
+        }
+
+        Dueno creado = duenoService.crearDueno(dueno);
+        return ResponseEntity.ok(creado);
     }
 
     @GetMapping
@@ -46,7 +50,16 @@ public class DuenoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Dueno> actualizar(@PathVariable String id, @RequestBody Dueno dueno) {
+    public ResponseEntity<?> actualizar(@PathVariable String id, @RequestBody Dueno dueno) {
+        if (dueno.getIdUsuario() == null) {
+            return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
+        }
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(dueno.getIdUsuario());
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
+        }
+
         return ResponseEntity.ok(duenoService.actualizarDueno(id, dueno));
     }
 

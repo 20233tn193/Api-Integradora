@@ -44,7 +44,4 @@ public class Enfrentamiento {
     public void setJornada(int jornada) {
         this.jornada = jornada;
     }
-
-    // Getters y setters
-    
 }

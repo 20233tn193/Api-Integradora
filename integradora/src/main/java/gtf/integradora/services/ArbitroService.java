@@ -30,10 +30,6 @@ public class ArbitroService {
         return arbitroRepository.findByIdAndEliminadoFalse(id);
     }
 
-    public Optional<Arbitro> obtenerPorCorreo(String correo) {
-        return arbitroRepository.findByCorreoAndEliminadoFalse(correo);
-    }
-
     public Arbitro actualizarArbitro(String id, Arbitro actualizado) {
         Arbitro arbitro = arbitroRepository.findByIdAndEliminadoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Árbitro no encontrado"));
@@ -41,9 +37,7 @@ public class ArbitroService {
         arbitro.setNombre(actualizado.getNombre());
         arbitro.setApellido(actualizado.getApellido());
         arbitro.setCelular(actualizado.getCelular());
-        arbitro.setCorreo(actualizado.getCorreo());
         arbitro.setFotoUrl(actualizado.getFotoUrl());
-        // Password no se actualiza aquí por seguridad
 
         return arbitroRepository.save(arbitro);
     }

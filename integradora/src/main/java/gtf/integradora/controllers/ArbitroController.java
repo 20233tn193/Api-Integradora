@@ -1,17 +1,13 @@
 package gtf.integradora.controllers;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import gtf.integradora.entity.Arbitro;
+import gtf.integradora.entity.Usuario;
+import gtf.integradora.repository.UsuarioRepository;
 import gtf.integradora.services.ArbitroService;
 
 @RestController
@@ -19,17 +15,26 @@ import gtf.integradora.services.ArbitroService;
 public class ArbitroController {
 
     private final ArbitroService arbitroService;
+    private final UsuarioRepository usuarioRepository;
 
-    public ArbitroController(ArbitroService arbitroService) {
+    public ArbitroController(ArbitroService arbitroService, UsuarioRepository usuarioRepository) {
         this.arbitroService = arbitroService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @PostMapping
-    public ResponseEntity<Arbitro> crear(@RequestBody Arbitro arbitro) {
-        if (arbitroService.obtenerPorCorreo(arbitro.getCorreo()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+    public ResponseEntity<?> crear(@RequestBody Arbitro arbitro) {
+        if (arbitro.getIdUsuario() == null) {
+            return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
         }
-        return ResponseEntity.ok(arbitroService.crearArbitro(arbitro));
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(arbitro.getIdUsuario());
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
+        }
+
+        Arbitro creado = arbitroService.crearArbitro(arbitro);
+        return ResponseEntity.ok(creado);
     }
 
     @GetMapping
@@ -45,7 +50,16 @@ public class ArbitroController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Arbitro> actualizar(@PathVariable String id, @RequestBody Arbitro arbitro) {
+    public ResponseEntity<?> actualizar(@PathVariable String id, @RequestBody Arbitro arbitro) {
+        if (arbitro.getIdUsuario() == null) {
+            return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
+        }
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(arbitro.getIdUsuario());
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
+        }
+
         return ResponseEntity.ok(arbitroService.actualizarArbitro(id, arbitro));
     }
 

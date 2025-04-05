@@ -1,7 +1,6 @@
 package gtf.integradora.security;
 
 import java.util.stream.Collectors;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;

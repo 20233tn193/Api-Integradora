@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import gtf.integradora.dto.RegistroPartidoDTO;
+//import gtf.integradora.dto.RegistroPartidoDTO;
 import gtf.integradora.entity.Equipo;
 import gtf.integradora.entity.Goleador;
 import gtf.integradora.entity.Jugador;
@@ -86,7 +86,7 @@ public class PartidoService {
             throw new RuntimeException("No se puede programar un partido después de que el torneo finalizó.");
         }
 
-        // 🔍 Validar si el árbitro ya tiene un partido asignado a esa hora
+        // Validar si el árbitro ya tiene un partido asignado a esa hora
         List<Partido> partidosMismoHorario = partidoRepository.findByArbitroIdAndFechaAndHoraAndEliminadoFalse(
                 partido.getArbitroId(), partido.getFecha(), partido.getHora());
 
@@ -94,7 +94,7 @@ public class PartidoService {
             throw new RuntimeException("El árbitro ya tiene un partido asignado en esa fecha y hora.");
         }
 
-        // ✅ Validación: evitar que se programe más de un partido en el mismo campo,
+        // Validación: evitar que se programe más de un partido en el mismo campo,
         // fecha y hora
         List<Partido> conflictos = partidoRepository.findByCampoIdAndFechaAndHoraAndEliminadoFalse(
                 partido.getCampoId(), partido.getFecha(), partido.getHora());
@@ -126,7 +126,7 @@ public class PartidoService {
         Partido partido = partidoRepository.findByIdAndEliminadoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Partido no encontrado"));
 
-        // ✅ Validar conflicto de horario si se cambia el árbitro o la hora/fecha
+        // Validar conflicto de horario si se cambia el árbitro o la hora/fecha
         if (!partido.getArbitroId().equals(datos.getArbitroId()) ||
                 !partido.getFecha().equals(datos.getFecha()) ||
                 !partido.getHora().equals(datos.getHora())) {
@@ -239,32 +239,6 @@ public class PartidoService {
         }
     }
 
-    /*
-     * Eliminare este metodo, pero no estoy seguro si afectara
-     * // Genera la siguiente jornada con partidos
-     * public List<Partido> generarSiguienteJornada(String torneoId, int
-     * jornadaActual) {
-     * List<Equipo> equipos =
-     * equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
-     * 
-     * // Lógica para obtener ganadores y perdedores
-     * List<Equipo> ganadores = obtenerEquiposGanadores(equipos, jornadaActual);
-     * List<Equipo> perdedores = obtenerEquiposPerdedores(equipos, jornadaActual);
-     * 
-     * // Crear partidos para la nueva jornada
-     * List<Partido> nuevosPartidos = generarEnfrentamientos(ganadores, perdedores,
-     * jornadaActual);
-     * 
-     * // Asignar campos y árbitros a los partidos
-     * partidoScheduler.asignarPartidos(nuevosPartidos,
-     * campoRepository.findByEliminadoFalse(),
-     * arbitroRepository.findByEliminadoFalse(), torneoId, jornadaActual);
-     * 
-     * // Guardar los nuevos partidos en la base de datos
-     * return partidoRepository.saveAll(nuevosPartidos);
-     * }
-     */
-
     // Método para obtener los equipos ganadores
     @SuppressWarnings("unused")
     private List<Equipo> obtenerEquiposGanadores(List<Equipo> equipos, int jornadaActual) {
@@ -358,7 +332,7 @@ public class PartidoService {
 
         if (todosFinalizados) {
             partidoGeneratorService.generarSiguienteJornada(torneoId);
-            System.out.println("✅ Nueva jornada generada automáticamente");
+            System.out.println("Nueva jornada generada automáticamente");
         }
     }
 
@@ -386,7 +360,7 @@ public class PartidoService {
         Partido partido = partidoRepository.findByIdAndEliminadoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Partido no encontrado"));
 
-        // 🛡️ Validar que la nueva fecha esté dentro del rango del torneo
+        // Validar que la nueva fecha esté dentro del rango del torneo
         Torneo torneo = equipoRepository.findById(partido.getEquipoAId())
                 .flatMap(equipo -> Optional.ofNullable(equipo.getTorneoId()))
                 .flatMap(torneoId -> torneoRepository.findById(torneoId))
@@ -397,7 +371,7 @@ public class PartidoService {
             throw new RuntimeException("La nueva fecha está fuera del rango permitido por el torneo.");
         }
 
-        // ⚠️ Validar conflicto de horario para el árbitro
+        // Validar conflicto de horario para el árbitro
         List<Partido> conflictos = partidoRepository.findByArbitroIdAndFechaAndHoraAndEliminadoFalse(
                 nuevoArbitroId, nuevaFecha, nuevaHora);
 

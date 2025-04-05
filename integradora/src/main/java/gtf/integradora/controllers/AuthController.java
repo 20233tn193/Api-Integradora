@@ -24,6 +24,7 @@ import org.springframework.security.core.userdetails.User;
 public class AuthController {
 
     private final JwtTokenUtil jwtTokenUtil;
+    @SuppressWarnings("unused")
     private final UsuarioRepository usuarioRepository;
     private final AuthenticationManager authenticationManager;
 

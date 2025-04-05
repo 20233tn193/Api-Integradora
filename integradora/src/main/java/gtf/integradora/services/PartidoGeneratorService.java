@@ -1,5 +1,6 @@
 package gtf.integradora.services;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -11,12 +12,14 @@ import gtf.integradora.entity.Jugador;
 import gtf.integradora.entity.Partido;
 import gtf.integradora.entity.PartidoScheduler;
 import gtf.integradora.entity.RegistroJugador;
+import gtf.integradora.entity.TablaPosicion;
 import gtf.integradora.entity.Torneo;
 import gtf.integradora.repository.ArbitroRepository;
 import gtf.integradora.repository.CampoRepository;
 import gtf.integradora.repository.EquipoRepository;
 import gtf.integradora.repository.JugadorRepository;
 import gtf.integradora.repository.PartidoRepository;
+import gtf.integradora.repository.TablaPosicionRepository;
 import gtf.integradora.repository.TorneoRepository;
 
 @Service
@@ -29,6 +32,7 @@ public class PartidoGeneratorService {
     private final JugadorRepository jugadorRepository;
     private final PartidoScheduler partidoScheduler;
     private final TorneoRepository torneoRepository;
+    private final TablaPosicionRepository tablaPosicionRepository;
 
     public PartidoGeneratorService(
             EquipoRepository equipoRepository,
@@ -37,7 +41,8 @@ public class PartidoGeneratorService {
             ArbitroRepository arbitroRepository,
             JugadorRepository jugadorRepository,
             PartidoScheduler partidoScheduler,
-            TorneoRepository torneoRepository) {
+            TorneoRepository torneoRepository,
+            TablaPosicionRepository tablaPosicionRepository) {
         this.equipoRepository = equipoRepository;
         this.partidoRepository = partidoRepository;
         this.campoRepository = campoRepository;
@@ -45,6 +50,7 @@ public class PartidoGeneratorService {
         this.jugadorRepository = jugadorRepository;
         this.partidoScheduler = partidoScheduler;
         this.torneoRepository = torneoRepository;
+        this.tablaPosicionRepository = tablaPosicionRepository;
     }
 
     public List<Partido> generarSiguienteJornada(String torneoId) {
@@ -78,6 +84,7 @@ public class PartidoGeneratorService {
         List<Partido> nuevosPartidos = partidoScheduler.asignarPartidos(
                 enfrentamientos, campos, arbitros, torneoId, nuevaJornada);
 
+        actualizarFaseEquipos(torneoId);
         return partidoRepository.saveAll(nuevosPartidos);
     }
 
@@ -189,5 +196,92 @@ public class PartidoGeneratorService {
         }
 
         return lista;
+    }
+
+    public void actualizarFaseEquipos(String torneoId) {
+        List<Partido> partidos = partidoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
+        List<TablaPosicion> tabla = tablaPosicionRepository.findByTorneoIdAndEliminadoFalse(torneoId);
+
+        Map<String, Long> derrotasPorEquipo = new HashMap<>();
+        Map<String, Long> victoriasPorEquipo = new HashMap<>();
+
+        for (Partido partido : partidos) {
+            if (!"finalizado".equalsIgnoreCase(partido.getEstado()) || partido.getRegistro() == null)
+                continue;
+
+            int golesA = contarGoles(partido, partido.getEquipoAId());
+            int golesB = contarGoles(partido, partido.getEquipoBId());
+
+            if (golesA > golesB) {
+                victoriasPorEquipo.merge(partido.getEquipoAId(), 1L, Long::sum);
+                derrotasPorEquipo.merge(partido.getEquipoBId(), 1L, Long::sum);
+            } else if (golesB > golesA) {
+                victoriasPorEquipo.merge(partido.getEquipoBId(), 1L, Long::sum);
+                derrotasPorEquipo.merge(partido.getEquipoAId(), 1L, Long::sum);
+            }
+        }
+
+        // Fase provisional
+        String posibleCampeonId = null;
+
+        for (TablaPosicion pos : tabla) {
+            String equipoId = pos.getEquipoId();
+            long derrotas = derrotasPorEquipo.getOrDefault(equipoId, 0L);
+            long victorias = victoriasPorEquipo.getOrDefault(equipoId, 0L);
+
+            if (derrotas >= 2) {
+                pos.setFase("Eliminado");
+            } else if (victorias >= 3 && derrotas == 0) {
+                pos.setFase("Final G");
+            } else if (victorias >= 3 && derrotas == 1) {
+                pos.setFase("Final P");
+            } else if (victorias >= 4 && derrotas == 1) {
+                pos.setFase("Gran Final");
+                posibleCampeonId = equipoId;
+            } else if (victorias == 0 && derrotas == 0) {
+                pos.setFase("Ronda 1 G");
+            } else if (derrotas == 1) {
+                pos.setFase("Ronda " + (victorias + 1) + " P");
+            } else {
+                pos.setFase("Ronda " + (victorias + 1) + " G");
+            }
+
+            tablaPosicionRepository.save(pos);
+        }
+
+        // Verificar si hay solo un equipo activo (no eliminado)
+        List<TablaPosicion> activos = tabla.stream()
+                .filter(tp -> !"Eliminado".equals(tp.getFase()))
+                .toList();
+
+        if (activos.size() == 1 && posibleCampeonId != null) {
+            TablaPosicion campeon = tabla.stream()
+                    .filter(tp -> tp.getEquipoId().equals(activos.get(0)))
+                    .findFirst()
+                    .orElse(null);
+
+            if (campeon != null) {
+                campeon.setFase("Campeón");
+                tablaPosicionRepository.save(campeon);
+
+            }
+
+            Torneo torneo = torneoRepository.findById(torneoId)
+                    .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
+
+            torneo.setEstado("Finalizado");
+            torneo.setFechaFin(LocalDate.now());
+            torneoRepository.save(torneo);
+
+            // Después de setFase("Campeón");
+            String nombreEquipo = equipoRepository.findById(posibleCampeonId)
+                    .map(Equipo::getNombre)
+                    .orElse("Desconocido");
+
+            String nombreTorneo = torneo.getNombreTorneo();
+
+            System.out.println(
+                    "🏆 ¡El equipo " + nombreEquipo + " ha sido declarado CAMPEÓN del torneo " + nombreTorneo + "!");
+        }
     }
 }

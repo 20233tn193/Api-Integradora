@@ -310,6 +310,8 @@ public class PartidoService {
         actualizarTarjetas(registro, partido.getTorneoId());
 
         verificarYGenerarSiguienteJornada(partido.getTorneoId());
+
+        partidoGeneratorService.actualizarFaseEquipos(partido.getTorneoId());
         return partido;
     }
 

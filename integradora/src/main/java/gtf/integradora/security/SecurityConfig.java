@@ -79,6 +79,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
                         .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+
 
                         // Cualquier otra requiere token
                         .anyRequest().authenticated())

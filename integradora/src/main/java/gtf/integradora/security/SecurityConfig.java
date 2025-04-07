@@ -95,17 +95,18 @@ public class SecurityConfig {
 
                         // Rutas privadas por rol
                         .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN") // ✅ Línea agregada
-                        .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
+                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
-                        .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
-<<<<<<< HEAD
                         .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
 
-=======
->>>>>>> fefbcdf6029d17b8b0267d90dcb4c1f17380e7f7
+                        .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
+                        
+                        .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
+                        .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
+
+                        
+
 
                         // Cualquier otra requiere token
                         .anyRequest().authenticated())

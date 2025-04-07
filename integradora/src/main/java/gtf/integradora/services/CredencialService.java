@@ -4,14 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.net.URI;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.draw.LineSeparator;
-
 import gtf.integradora.entity.Equipo;
 import gtf.integradora.entity.Jugador;
 import gtf.integradora.entity.Torneo;
@@ -78,6 +75,7 @@ public class CredencialService {
             // Foto del jugador
             if (jugador.getFotoUrl() != null) {
                 try {
+                    @SuppressWarnings("deprecation")
                     Image foto = Image.getInstance(new URL(jugador.getFotoUrl()));
                     foto.scaleToFit(100, 100);
                     foto.setAlignment(Image.ALIGN_RIGHT);
@@ -90,6 +88,7 @@ public class CredencialService {
             // Logo del equipo
             if (equipo.getLogoUrl() != null) {
                 try {
+                    @SuppressWarnings("deprecation")
                     Image logo = Image.getInstance(new URL(equipo.getLogoUrl()));
                     logo.scaleToFit(80, 80);
                     document.add(new Paragraph("Equipo: " + equipo.getNombre()));

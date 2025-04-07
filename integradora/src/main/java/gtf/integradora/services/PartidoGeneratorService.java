@@ -9,6 +9,7 @@ import gtf.integradora.entity.Campo;
 import gtf.integradora.entity.Enfrentamiento;
 import gtf.integradora.entity.Equipo;
 import gtf.integradora.entity.Jugador;
+import gtf.integradora.entity.Pago;
 import gtf.integradora.entity.Partido;
 import gtf.integradora.entity.PartidoScheduler;
 import gtf.integradora.entity.RegistroJugador;
@@ -18,6 +19,7 @@ import gtf.integradora.repository.ArbitroRepository;
 import gtf.integradora.repository.CampoRepository;
 import gtf.integradora.repository.EquipoRepository;
 import gtf.integradora.repository.JugadorRepository;
+import gtf.integradora.repository.PagoRepository;
 import gtf.integradora.repository.PartidoRepository;
 import gtf.integradora.repository.TablaPosicionRepository;
 import gtf.integradora.repository.TorneoRepository;
@@ -33,6 +35,7 @@ public class PartidoGeneratorService {
     private final PartidoScheduler partidoScheduler;
     private final TorneoRepository torneoRepository;
     private final TablaPosicionRepository tablaPosicionRepository;
+    private final PagoRepository pagoRepository;
 
     public PartidoGeneratorService(
             EquipoRepository equipoRepository,
@@ -42,7 +45,8 @@ public class PartidoGeneratorService {
             JugadorRepository jugadorRepository,
             PartidoScheduler partidoScheduler,
             TorneoRepository torneoRepository,
-            TablaPosicionRepository tablaPosicionRepository) {
+            TablaPosicionRepository tablaPosicionRepository,
+            PagoRepository pagoRepository) {
         this.equipoRepository = equipoRepository;
         this.partidoRepository = partidoRepository;
         this.campoRepository = campoRepository;
@@ -51,6 +55,7 @@ public class PartidoGeneratorService {
         this.partidoScheduler = partidoScheduler;
         this.torneoRepository = torneoRepository;
         this.tablaPosicionRepository = tablaPosicionRepository;
+        this.pagoRepository = pagoRepository;
     }
 
     public List<Partido> generarSiguienteJornada(String torneoId) {
@@ -84,8 +89,38 @@ public class PartidoGeneratorService {
         List<Partido> nuevosPartidos = partidoScheduler.asignarPartidos(
                 enfrentamientos, campos, arbitros, torneoId, nuevaJornada);
 
+        for (Partido partido : nuevosPartidos) {
+            crearPagosDePartido(partido);
+        }
+
         actualizarFaseEquipos(torneoId);
         return partidoRepository.saveAll(nuevosPartidos);
+    }
+
+    //Aqui podemos cambiar el monto de los pagos
+    private void crearPagosDePartido(Partido partido) {
+        crearPago(partido, partido.getEquipoAId(), "arbitraje", 150);
+        crearPago(partido, partido.getEquipoAId(), "uso_de_cancha", 100);
+        crearPago(partido, partido.getEquipoBId(), "arbitraje", 150);
+        crearPago(partido, partido.getEquipoBId(), "uso_de_cancha", 100);
+    }
+
+    private void crearPago(Partido partido, String equipoId, String tipo, float montoBase) {
+        Equipo equipo = equipoRepository.findById(equipoId)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado para el pago"));
+
+        Pago pago = new Pago();
+        pago.setTorneoId(partido.getTorneoId());
+        pago.setPartidoId(partido.getId());
+        pago.setEquipoId(equipoId);
+        pago.setDuenoId(equipo.getDuenoId());
+        pago.setTipo(tipo);
+        pago.setEstatus("pendiente");
+        pago.setFechaPago(new Date());
+        pago.setMonto(montoBase);
+        pago.setEliminado(false);
+
+        pagoRepository.save(pago);
     }
 
     private List<Equipo> obtenerEquiposGanadores(List<Equipo> equipos, List<Partido> partidos) {

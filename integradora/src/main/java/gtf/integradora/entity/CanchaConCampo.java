@@ -11,7 +11,6 @@ public class CanchaConCampo {
         this.nombreCancha = nombreCancha;
     }
 
-    // Getters
     public String getCampoId() {
         return campoId;
     }
@@ -22,5 +21,14 @@ public class CanchaConCampo {
 
     public String getNombreCancha() {
         return nombreCancha;
+    }
+
+    @Override
+    public String toString() {
+        return "CanchaConCampo{" +
+                "campoId='" + campoId + '\'' +
+                ", nombreCampo='" + nombreCampo + '\'' +
+                ", nombreCancha='" + nombreCancha + '\'' +
+                '}';
     }
 }

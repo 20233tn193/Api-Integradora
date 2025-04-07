@@ -42,6 +42,7 @@ public class TorneoService {
         torneo.setInformacion(datosActualizados.getInformacion());
         torneo.setCosto(datosActualizados.getCosto());
         torneo.setFechaInicio(datosActualizados.getFechaInicio());
+        torneo.setFechaFin(datosActualizados.getFechaFin());
 
         return torneoRepository.save(torneo);
     }

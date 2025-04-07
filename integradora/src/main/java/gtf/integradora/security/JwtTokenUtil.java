@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtTokenUtil {
 
-    private String secretKey = "QrOK4gu5BjD8UKP/W7Mz4El94HvBBXWVGV7+mcZbKOFfpNLZvUlMi2YDkoBBLjwNaxSsQpry4QNaGT1VLSvi+A==";
+    private String secretKey = "SLdMxVwuOdWmnCCrXunCP/k6NmCrRmsEGgf7wZVNRqs7LTOaj2bK+0Ek2tVeeaT87d1lr+iVLFtMh2OiKAwDqA==";
 
     // Generar el token JWT
     @SuppressWarnings("deprecation")

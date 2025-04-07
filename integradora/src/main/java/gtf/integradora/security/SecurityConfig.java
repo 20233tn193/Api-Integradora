@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+
 import gtf.integradora.entity.Usuario;
 import gtf.integradora.repository.UsuarioRepository;
 
@@ -44,11 +49,24 @@ public class SecurityConfig {
         return authBuilder.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOriginPattern("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     // 🔓 Configuración para desarrollo: todo permitido
     @Bean
     @Profile("dev")
     public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.cors().and().csrf().disable()
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable());
@@ -59,7 +77,7 @@ public class SecurityConfig {
     @Bean
     @Profile("prod")
     public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.cors().and().csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         // Swagger público
                         .requestMatchers(
@@ -67,8 +85,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/swagger-ui.html",
-                                "/webjars/**")
-                        .permitAll()
+                                "/webjars/**"
+                        ).permitAll()
 
                         // Rutas públicas
                         .requestMatchers("/api/auth/**").permitAll()
@@ -76,11 +94,18 @@ public class SecurityConfig {
                         .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
 
                         // Rutas privadas por rol
+                        .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN") // ✅ Línea agregada
+                        .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
+                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
+<<<<<<< HEAD
                         .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
 
+=======
+>>>>>>> fefbcdf6029d17b8b0267d90dcb4c1f17380e7f7
 
                         // Cualquier otra requiere token
                         .anyRequest().authenticated())

@@ -1,11 +1,18 @@
 package gtf.integradora.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 public class Cancha {
-    private String nombreCancha; // Ej: "Cancha 1", "Cancha A", etc.
+
+    @Field("nombreCancha")
+    private String nombreCancha;
 
     public Cancha() {}
 
-    public Cancha(String nombreCancha) {
+    @JsonCreator
+    public Cancha(@JsonProperty("nombreCancha") String nombreCancha) {
         this.nombreCancha = nombreCancha;
     }
 
@@ -15,5 +22,12 @@ public class Cancha {
 
     public void setNombreCancha(String nombreCancha) {
         this.nombreCancha = nombreCancha;
+    }
+
+    @Override
+    public String toString() {
+        return "Cancha{" +
+                "nombreCancha='" + nombreCancha + '\'' +
+                '}';
     }
 }

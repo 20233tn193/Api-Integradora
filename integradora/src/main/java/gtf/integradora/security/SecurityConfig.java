@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -93,9 +94,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
 
                         // Rutas privadas por rol
+                        .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
+                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN") // Asegúrate de que el rol ADMIN pueda acceder
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
-                        .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
 
                         // Cualquier otra requiere token
                         .anyRequest().authenticated())

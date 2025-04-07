@@ -52,10 +52,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*"); // Permite cualquier origen
-        configuration.addAllowedMethod("*");         // Permite todos los métodos HTTP
-        configuration.addAllowedHeader("*");         // Permite todos los headers
-        configuration.setAllowCredentials(true);     // Permite credenciales
+        configuration.addAllowedOriginPattern("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -85,8 +85,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/swagger-ui.html",
-                                "/webjars/**")
-                        .permitAll()
+                                "/webjars/**"
+                        ).permitAll()
 
                         // Rutas públicas
                         .requestMatchers("/api/auth/**").permitAll()
@@ -94,8 +94,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
 
                         // Rutas privadas por rol
+                        .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN") // ✅ Línea agregada
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
-                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN") // Asegúrate de que el rol ADMIN pueda acceder
+                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
 

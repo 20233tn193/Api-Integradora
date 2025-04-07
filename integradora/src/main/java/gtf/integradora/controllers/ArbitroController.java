@@ -23,19 +23,26 @@ public class ArbitroController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Arbitro arbitro) {
-        if (arbitro.getIdUsuario() == null) {
-            return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
-        }
+public ResponseEntity<?> crear(@RequestBody Arbitro arbitro) {
+    System.out.println("📥 Datos recibidos en controller para crear árbitro:");
+    System.out.println("Nombre: " + arbitro.getNombre());
+    System.out.println("Apellido: " + arbitro.getApellido());
+    System.out.println("Celular: " + arbitro.getCelular());
+    System.out.println("ID Usuario: " + arbitro.getIdUsuario());
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(arbitro.getIdUsuario());
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
-        }
-
-        Arbitro creado = arbitroService.crearArbitro(arbitro);
-        return ResponseEntity.ok(creado);
+    if (arbitro.getIdUsuario() == null) {
+        return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
     }
+
+    Optional<Usuario> usuarioOpt = usuarioRepository.findById(arbitro.getIdUsuario());
+    if (usuarioOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
+    }
+
+    Arbitro creado = arbitroService.crearArbitro(arbitro);
+    System.out.println("✅ Árbitro creado: " + creado);
+    return ResponseEntity.ok(creado);
+}
 
     @GetMapping
     public ResponseEntity<List<Arbitro>> obtenerTodos() {

@@ -2,7 +2,6 @@ package gtf.integradora.controllers;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,9 +74,6 @@ public class PartidoController {
     public ResponseEntity<Partido> registrarResultado(@PathVariable String partidoId,
             @RequestBody RegistroPartidoDTO datos,
             Authentication authentication) {
-        if (!authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_ARBITRO"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         try {
             Partido partidoActualizado = partidoService.registrarResultado(partidoId, datos.getRegistro());
@@ -86,19 +82,6 @@ public class PartidoController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-    /*
-     * @PutMapping("/reprogramar/{id}")
-     * public ResponseEntity<Partido> reprogramarPartido(@PathVariable String
-     * id, @RequestBody Partido datos) {
-     * try {
-     * Partido actualizado = partidoService.reprogramarPartido(id, datos);
-     * return ResponseEntity.ok(actualizado);
-     * } catch (RuntimeException e) {
-     * return ResponseEntity.badRequest().body(null);
-     * }
-     * }
-     */
 
     @PutMapping("/reprogramar/{id}")
     public ResponseEntity<Partido> reprogramar(

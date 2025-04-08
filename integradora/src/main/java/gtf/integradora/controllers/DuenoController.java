@@ -1,7 +1,6 @@
 package gtf.integradora.controllers;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +37,28 @@ public class DuenoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Dueno>> obtenerTodos() {
-        return ResponseEntity.ok(duenoService.obtenerTodos());
+    public ResponseEntity<List<Map<String, Object>>> obtenerTodos() {
+        List<Dueno> duenos = duenoService.obtenerTodos();
+        List<Map<String, Object>> resultado = new ArrayList<>();
+
+        for (Dueno dueno : duenos) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", dueno.getId());
+            map.put("nombre", dueno.getNombre());
+            map.put("apellido", dueno.getApellido());
+            map.put("idUsuario", dueno.getIdUsuario());
+            map.put("eliminado", dueno.isEliminado());
+
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(dueno.getIdUsuario());
+            usuarioOpt.ifPresent(usuario -> {
+                map.put("correo", usuario.getEmail());
+                map.put("contrasena", usuario.getPassword()); // Opcional
+            });
+
+            resultado.add(map);
+        }
+
+        return ResponseEntity.ok(resultado);
     }
 
     @GetMapping("/{id}")

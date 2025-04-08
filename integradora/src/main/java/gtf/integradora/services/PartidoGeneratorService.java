@@ -59,45 +59,62 @@ public class PartidoGeneratorService {
     }
 
     public List<Partido> generarSiguienteJornada(String torneoId) {
-        // Validación aquí:
         Torneo torneo = torneoRepository.findById(torneoId)
                 .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
-
+    
         if ("finalizado".equalsIgnoreCase(torneo.getEstado())) {
             throw new RuntimeException("No se puede generar jornadas para un torneo finalizado.");
         }
-
+    
         List<Equipo> equipos = equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
         List<Partido> partidosAnteriores = partidoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
         List<Equipo> equiposElegibles = filtrarEquiposElegibles(equipos, partidosAnteriores);
-
+    
         int jornadaActual = partidosAnteriores.stream()
                 .mapToInt(Partido::getJornada)
                 .max()
                 .orElse(0);
-
+    
         int nuevaJornada = jornadaActual + 1;
-
-        List<Equipo> ganadores = obtenerEquiposGanadores(equiposElegibles, partidosAnteriores);
-        List<Equipo> perdedores = obtenerEquiposPerdedores(equiposElegibles, partidosAnteriores);
-
+    
+        // ✅ Log para verificar
+        System.out.println("✅ Generando jornada " + nuevaJornada + " para torneo: " + torneoId);
+        System.out.println("🔎 Total equipos inscritos: " + equipos.size());
+        System.out.println("🔎 Equipos elegibles (menos de 2 derrotas): " + equiposElegibles.size());
+        System.out.println("🔁 Total partidos anteriores: " + partidosAnteriores.size());
+    
+        // ✅ Nueva lógica: si es primera jornada, todos van como ganadores
+        List<Equipo> ganadores;
+        List<Equipo> perdedores;
+    
+        if (partidosAnteriores.isEmpty()) {
+            ganadores = new ArrayList<>(equiposElegibles);
+            perdedores = new ArrayList<>();
+        } else {
+            ganadores = obtenerEquiposGanadores(equiposElegibles, partidosAnteriores);
+            perdedores = obtenerEquiposPerdedores(equiposElegibles, partidosAnteriores);
+        }
+    
         List<Enfrentamiento> enfrentamientos = generarEnfrentamientos(ganadores, perdedores, nuevaJornada);
-
+        System.out.println("🧩 Enfrentamientos generados: " + enfrentamientos.size());
+    
         List<Campo> campos = campoRepository.findByDisponibleTrueAndEliminadoFalse();
         List<Arbitro> arbitros = arbitroRepository.findByEliminadoFalse();
-
+    
         List<Partido> nuevosPartidos = partidoScheduler.asignarPartidos(
                 enfrentamientos, campos, arbitros, torneoId, nuevaJornada);
-
+    
+        System.out.println("📍 Nuevos partidos generados: " + nuevosPartidos.size());
+    
         for (Partido partido : nuevosPartidos) {
             crearPagosDePartido(partido);
         }
-
+    
         actualizarFaseEquipos(torneoId);
         return partidoRepository.saveAll(nuevosPartidos);
     }
 
-    //Aqui podemos cambiar el monto de los pagos
+    // Aqui podemos cambiar el monto de los pagos
     private void crearPagosDePartido(Partido partido) {
         crearPago(partido, partido.getEquipoAId(), "arbitraje", 150);
         crearPago(partido, partido.getEquipoAId(), "uso_de_cancha", 100);

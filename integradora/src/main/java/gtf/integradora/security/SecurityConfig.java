@@ -98,11 +98,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
                         
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
+                        .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
 
                         

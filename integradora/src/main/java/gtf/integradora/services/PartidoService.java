@@ -215,7 +215,7 @@ public class PartidoService {
 
             // Si el jugador está suspendido pero no asistió al partido, se descuenta 1
             // partido de suspensión
-            if (!r.isAsistencia() && tarjeta.isSuspendido()) {
+            if (!r.isAsistio() && tarjeta.isSuspendido()) {
                 int restantes = tarjeta.getPartidosSuspendido() - 1;
                 tarjeta.setPartidosSuspendido(Math.max(0, restantes));
                 if (restantes <= 0) {
@@ -224,7 +224,7 @@ public class PartidoService {
             }
 
             // Si asistió al partido y recibió tarjetas
-            if (r.isAsistencia()) {
+            if (r.isAsistio()) {
                 tarjeta.setAmarillas(tarjeta.getAmarillas() + r.getAmarillas());
                 tarjeta.setRojas(tarjeta.getRojas() + r.getRojas());
 
@@ -285,7 +285,7 @@ public class PartidoService {
 
             if (tarjeta != null && tarjeta.getRojas() > 0) {
                 r.setSuspendido(true);
-                r.setAsistencia(false);
+                r.setAsistio(false);
             }
         }
 

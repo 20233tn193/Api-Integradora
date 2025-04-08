@@ -26,19 +26,23 @@ public class PartidoScheduler {
             List<Campo> campos,
             List<Arbitro> arbitros,
             String torneoId,
-            int jornada
-    ) {
+            int jornada) {
         List<Partido> partidosAsignados = new ArrayList<>();
 
         List<CanchaConCampo> canchasDisponibles = obtenerCanchasDisponibles(campos);
 
-        for (@SuppressWarnings("unused") Enfrentamiento enfrentamiento : enfrentamientos) {
+        for (Enfrentamiento enfrentamiento : enfrentamientos) {
             // Asignar cancha
             CanchaConCampo canchaAsignada = canchasDisponibles.get(canchaIndex % canchasDisponibles.size());
             canchaIndex++;
 
             // Asignar horario
-            LocalDate fecha = LocalDate.now().plusDays(jornada); // Simulación
+            // NUEVO CÓDIGO PARA CALCULAR FECHA EN DOMINGO
+            LocalDate primerDomingo = LocalDate.now();
+            while (primerDomingo.getDayOfWeek().getValue() != 7) {
+                primerDomingo = primerDomingo.plusDays(1);
+            }
+            LocalDate fecha = primerDomingo.plusWeeks(jornada - 1);
             LocalTime hora = HORA_INICIO_BASE.plusHours(turnoHorario * DURACION_PARTIDO_HORAS);
             turnoHorario++;
 
@@ -50,12 +54,13 @@ public class PartidoScheduler {
                 arbitroAsignado = encontrarArbitroDisponible(arbitros, fecha, hora);
             }
 
-            // Registrar partido al árbitro
-            partidosPorArbitro.computeIfAbsent(arbitroAsignado.getId(), k -> new ArrayList<>())
-                    .add(new Partido()); // lo actualizaremos abajo
-
             // Actualizar campos del partido
             Partido partido = new Partido();
+            partido.setEquipoAId(enfrentamiento.getEquipoA().getId());
+            partido.setEquipoBId(enfrentamiento.getEquipoB().getId());
+            partido.setNombreEquipoA(enfrentamiento.getEquipoA().getNombre());
+            partido.setNombreEquipoB(enfrentamiento.getEquipoB().getNombre());
+
             partido.setCampoId(canchaAsignada.getCampoId());
             partido.setNombreCampo(canchaAsignada.getNombreCampo());
             partido.setNombreCancha(canchaAsignada.getNombreCancha());
@@ -69,12 +74,12 @@ public class PartidoScheduler {
             partido.setEstado("pendiente");
             partido.setTorneoId(torneoId);
             partido.setJornada(jornada);
+            partido.setFase("Ronda " + jornada);
             partido.setEliminado(false);
 
-            // Reemplazar el partido en la lista del árbitro
-            partidosPorArbitro.get(arbitroAsignado.getId()).set(
-                partidosPorArbitro.get(arbitroAsignado.getId()).size() - 1, partido
-            );
+            // Registrar partido al árbitro
+            partidosPorArbitro.computeIfAbsent(arbitroAsignado.getId(), k -> new ArrayList<>())
+                    .add(partido);
 
             partidosAsignados.add(partido);
         }
@@ -85,7 +90,8 @@ public class PartidoScheduler {
     private List<CanchaConCampo> obtenerCanchasDisponibles(List<Campo> campos) {
         List<CanchaConCampo> lista = new ArrayList<>();
         for (Campo campo : campos) {
-            if (!campo.isDisponible()) continue; // ⚠️ NUEVA LÍNEA: solo usamos campos disponibles
+            if (!campo.isDisponible())
+                continue; // ⚠️ NUEVA LÍNEA: solo usamos campos disponibles
             for (Cancha cancha : campo.getCanchas()) {
                 lista.add(new CanchaConCampo(campo.getId(), campo.getNombreCampo(), cancha.getNombreCancha()));
             }
@@ -100,12 +106,11 @@ public class PartidoScheduler {
             arbitroIndex++;
 
             List<Partido> asignados = partidosPorArbitro.getOrDefault(arbitro.getId(), new ArrayList<>());
-            boolean disponible = asignados.stream().noneMatch(p ->
-                p.getFecha().equals(fecha) &&
-                Math.abs(Duration.between(p.getHora(), hora).toHours()) < DURACION_PARTIDO_HORAS
-            );
+            boolean disponible = asignados.stream().noneMatch(p -> p.getFecha().equals(fecha) &&
+                    Math.abs(Duration.between(p.getHora(), hora).toHours()) < DURACION_PARTIDO_HORAS);
 
-            if (disponible) return arbitro;
+            if (disponible)
+                return arbitro;
             intentos++;
         }
 

@@ -1,5 +1,6 @@
 package gtf.integradora.services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,35 +70,38 @@ public class EquipoService {
     }
 
     public String inscribirEquipo(InscripcionRequestDTO request) {
-        // Validar que el torneo esté abierto
+        // Validar torneo
         Torneo torneo = torneoRepository.findByIdAndEliminadoFalse(request.getTorneoId())
                 .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
-
+    
         if (!"abierto".equalsIgnoreCase(torneo.getEstado())) {
             throw new RuntimeException("El torneo ya no acepta inscripciones.");
         }
-
-        // Crear el equipo
-        Equipo equipo = new Equipo();
-        equipo.setNombre(request.getNombreEquipo());
-        equipo.setLogoUrl(request.getLogoUrl());
-        equipo.setDuenoId(request.getDuenoId());
-        equipo.setTorneoId(request.getTorneoId());
-        equipo.setEliminado(false);
+    
+        // Obtener equipo
+        Equipo equipo = equipoRepository.findByIdAndEliminadoFalse(request.getEquipoId())
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+    
+        // Validar si ya está inscrito a algún torneo
+        if (equipo.getTorneoId() != null) {
+            throw new RuntimeException("Este equipo ya está inscrito en un torneo.");
+        }
+    
+        equipo.setTorneoId(torneo.getId());
         equipoRepository.save(equipo);
-
-        // Crear el pago de inscripción pendiente
+    
+        // Crear pago de inscripción
         Pago pago = new Pago();
         pago.setEquipoId(equipo.getId());
-        pago.setDuenoId(request.getDuenoId());
-        pago.setTorneoId(request.getTorneoId());
+        pago.setDuenoId(equipo.getDuenoId());
+        pago.setTorneoId(torneo.getId());
         pago.setTipo("inscripcion");
         pago.setEstatus("pendiente");
         pago.setMonto(torneo.getCosto());
-        pago.setFechaPago(null); // Aún no pagado
+        pago.setFechaPago(new Date());
         pago.setEliminado(false);
         pagoRepository.save(pago);
-
-        return "Equipo inscrito correctamente. Se generó un pago pendiente.";
+    
+        return "Equipo inscrito correctamente al torneo.";
     }
 }

@@ -34,6 +34,7 @@ public class PartidoController {
 
     @PostMapping("/generar-jornada/{torneoId}")
     public List<Partido> generarSiguienteJornada(@PathVariable String torneoId) {
+        System.out.println("⚽ Entró al endpoint generar jornada con torneoId: " + torneoId);
         return partidoGeneratorService.generarSiguienteJornada(torneoId);
     }
 

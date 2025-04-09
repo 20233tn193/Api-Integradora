@@ -43,22 +43,40 @@ public class AuthController {
 
             if (authentication.getPrincipal() instanceof User) {
                 User user = (User) authentication.getPrincipal();
-                String token = jwtTokenUtil.generarToken(authentication.getName(),
-                        user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+
+                // 🔍 Buscamos el usuario en la base de datos por su email
+                var usuarioOpt = usuarioRepository.findByEmail(user.getUsername());
+                if (usuarioOpt.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("message", "Usuario no encontrado"));
+                }
+
+                var usuario = usuarioOpt.get(); // ✅ Aquí ya tienes acceso al ID del usuario
+
+                // 🔐 Generar el token con los roles
+                String token = jwtTokenUtil.generarToken(
+                        authentication.getName(),
+                        user.getAuthorities().stream()
+                                .map(GrantedAuthority::getAuthority)
                                 .collect(Collectors.toList()));
 
+                // 🧾 Armar respuesta con token, rol y usuarioId
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
                 response.put("rol", user.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(",")));
+                response.put("usuarioId", usuario.getId()); // ✅ Ahora sí incluido
+
                 return ResponseEntity.ok(response);
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid user"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Usuario inválido"));
             }
 
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Credenciales inválidas"));
         }
     }
 }

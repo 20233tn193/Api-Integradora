@@ -14,4 +14,7 @@ public interface DuenoRepository extends MongoRepository<Dueno, String> {
     Optional<Dueno> findByIdAndEliminadoFalse(String id);
 
     List<Dueno> findByEliminadoFalse();
+
+    Optional<Dueno> findByIdUsuario(String idUsuario);
+
 }

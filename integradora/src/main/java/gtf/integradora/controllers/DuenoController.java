@@ -68,4 +68,12 @@ public class DuenoController {
         duenoService.eliminarDueno(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<Dueno> obtenerPorIdUsuario(@PathVariable String idUsuario) {
+        return duenoService.obtenerPorIdUsuario(idUsuario)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }

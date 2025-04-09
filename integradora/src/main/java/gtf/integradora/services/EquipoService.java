@@ -1,17 +1,23 @@
 package gtf.integradora.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import gtf.integradora.dto.InscripcionRequestDTO;
+import gtf.integradora.entity.Dueno;
 import gtf.integradora.entity.Equipo;
+import gtf.integradora.entity.EquipoConDuenoDTO;
 import gtf.integradora.entity.Pago;
 import gtf.integradora.entity.Torneo;
 import gtf.integradora.repository.EquipoRepository;
 import gtf.integradora.repository.PagoRepository;
 import gtf.integradora.repository.TorneoRepository;
+import gtf.integradora.repository.DuenoRepository;
+
 
 @Service
 public class EquipoService {
@@ -19,6 +25,7 @@ public class EquipoService {
     private final EquipoRepository equipoRepository;
     private final TorneoRepository torneoRepository;
     private final PagoRepository pagoRepository;
+    
 
     public EquipoService(
         EquipoRepository equipoRepository,
@@ -29,6 +36,10 @@ public class EquipoService {
         this.torneoRepository = torneoRepository;
         this.pagoRepository = pagoRepository;
     }
+    @Autowired
+private DuenoRepository duenoRepository;
+
+
 
     public Equipo crearEquipo(Equipo equipo) {
         equipo.setEliminado(false);
@@ -100,4 +111,32 @@ public class EquipoService {
 
         return "Equipo inscrito correctamente. Se generó un pago pendiente.";
     }
+    public List<EquipoConDuenoDTO> obtenerEquiposConDuenoPorTorneo(String torneoId) {
+    List<Equipo> equipos = equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
+
+    List<EquipoConDuenoDTO> resultado = new ArrayList<>();
+
+    for (Equipo equipo : equipos) {
+        String nombreDueno = "Sin nombre";
+
+        if (equipo.getDuenoId() != null) {
+            Dueno dueno = duenoRepository.findById(equipo.getDuenoId()).orElse(null);
+            if (dueno != null) {
+                nombreDueno = dueno.getNombre() + " " + dueno.getApellido();
+            }
+        }
+
+        // Opcional: busca el pago de inscripción si lo manejas como entidad
+      // Buscar estatus de pago
+String estatusPago = "Pendiente"; // por defecto
+Optional<Pago> pagoOptional = pagoRepository.findByEquipoIdAndTipo(equipo.getId(), "inscripcion");
+if (pagoOptional.isPresent()) {
+    estatusPago = pagoOptional.get().getEstatus();
+}
+
+        resultado.add(new EquipoConDuenoDTO(equipo.getNombre(), nombreDueno, estatusPago));
+    }
+
+    return resultado;
+}
 }

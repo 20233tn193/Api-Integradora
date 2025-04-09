@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+
 import gtf.integradora.entity.Pago;
 
 @Repository
@@ -25,4 +26,6 @@ public interface PagoRepository extends MongoRepository<Pago, String> {
 
     Optional<Pago> findByEquipoIdAndTorneoId(String equipoId, String torneoId);
     List<Pago> findByEliminadoFalse();
+    Optional<Pago> findByEquipoIdAndTipo(String equipoId, String tipo);
+
 }

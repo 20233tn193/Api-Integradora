@@ -37,7 +37,19 @@ public class TorneoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+/*
+@PostMapping("/{torneoId}/generar-jornada")
+public ResponseEntity<String> generarJornada(@PathVariable String torneoId) {
+    System.out.println("✅ [GENERAR JORNADA] Petición recibida para torneoId: " + torneoId);
+    
+    // 👉 Aquí puedes dejar comentada la lógica real mientras haces pruebas
+    // List<Partido> nuevosPartidos = partidoGeneratorService.generarSiguienteJornada(torneoId);
+    // return ResponseEntity.ok(nuevosPartidos);
 
+    return ResponseEntity.ok("Petición recibida correctamente para torneoId: " + torneoId);
+}
+
+*/
     @PostMapping
     public ResponseEntity<Torneo> crear(@RequestBody Torneo torneo) {
         return ResponseEntity.ok(torneoService.crearTorneo(torneo));

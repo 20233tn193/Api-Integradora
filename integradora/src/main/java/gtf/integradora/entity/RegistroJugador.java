@@ -7,28 +7,18 @@ public class RegistroJugador {
     private int goles;
     private int amarillas;
     private int rojas;
-    private boolean asistencia = false;
     private boolean suspendido = false;
 
     public RegistroJugador() {
     }
 
-    public RegistroJugador(String jugadorId, boolean asistio, int goles, int amarillas, int rojas, boolean suspendido, boolean asistencia) {
+    public RegistroJugador(String jugadorId, boolean asistio, int goles, int amarillas, int rojas, boolean suspendido) {
         this.jugadorId = jugadorId;
         this.asistio = asistio;
         this.goles = goles;
         this.amarillas = amarillas;
         this.rojas = rojas;
-        this.asistencia = asistencia;
         this.suspendido = suspendido;
-    }
-
-    public boolean isAsistencia() {
-        return asistencia;
-    }
-    
-    public void setAsistencia(boolean asistencia) {
-        this.asistencia = asistencia;
     }
     
 

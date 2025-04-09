@@ -65,4 +65,9 @@ public class PagoController {
         pagoService.eliminarPago(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/todos")
+    public ResponseEntity<List<Pago>> obtenerTodosLosPagos() {
+        return ResponseEntity.ok(pagoService.obtenerTodosLosPagosConMultaActualizada());
+    }
 }

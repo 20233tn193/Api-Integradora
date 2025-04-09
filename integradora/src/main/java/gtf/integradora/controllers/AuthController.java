@@ -58,6 +58,7 @@ public class AuthController {
                         userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                                 .collect(Collectors.toList()));
 
+                // 🧾 Armar respuesta con token, rol y usuarioId
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
                 response.put("rol", userDetails.getAuthorities().stream()
@@ -71,7 +72,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid user"));
 
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Credenciales inválidas"));
         }
     }
 

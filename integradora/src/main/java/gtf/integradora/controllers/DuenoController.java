@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import gtf.integradora.entity.Dueno;
 import gtf.integradora.entity.Usuario;
@@ -16,10 +17,13 @@ public class DuenoController {
 
     private final DuenoService duenoService;
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DuenoController(DuenoService duenoService, UsuarioRepository usuarioRepository) {
+    public DuenoController(DuenoService duenoService, UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder) {
         this.duenoService = duenoService;
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
@@ -74,6 +78,35 @@ public class DuenoController {
         return duenoService.obtenerPorIdUsuario(idUsuario)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/usuario")
+    public ResponseEntity<?> actualizarUsuarioDesdeDueno(
+            @PathVariable String id,
+            @RequestBody Usuario datosUsuario) {
+        Optional<Dueno> duenoOpt = duenoService.obtenerPorId(id);
+        if (duenoOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Dueño no encontrado");
+        }
+
+        Dueno dueno = duenoOpt.get();
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(dueno.getIdUsuario());
+
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (datosUsuario.getEmail() != null) {
+            usuario.setEmail(datosUsuario.getEmail());
+        }
+        if (datosUsuario.getPassword() != null) {
+            usuario.setPassword(passwordEncoder.encode(datosUsuario.getPassword()));
+        }
+
+        usuarioRepository.save(usuario);
+        return ResponseEntity.ok("Usuario actualizado correctamente");
     }
 
 }

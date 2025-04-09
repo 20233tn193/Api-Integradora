@@ -95,6 +95,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/torneos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
+                        .requestMatchers("/api/estadisticas/**").permitAll()
+
 
                         // ✅ Acceso público a los pagos detallados
                         .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()

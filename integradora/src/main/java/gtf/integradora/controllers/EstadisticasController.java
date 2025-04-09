@@ -16,25 +16,31 @@ import gtf.integradora.repository.GoleadorRepository;
 import gtf.integradora.repository.TablaPosicionRepository;
 import gtf.integradora.repository.TarjetaRepository;
 import gtf.integradora.services.PartidoService;
+import gtf.integradora.repository.JugadorRepository; // ⬅️ Importar
+
 
 @RestController
 @RequestMapping("/api/estadisticas")
 public class EstadisticasController {
 
+    private final JugadorRepository jugadorRepository; // ⬅️ Declarar
     private final TablaPosicionRepository tablaPosicionRepository;
     private final GoleadorRepository goleadorRepository;
     private final TarjetaRepository tarjetaRepository;
     private final PartidoService partidoService;
 
     public EstadisticasController(
-            TablaPosicionRepository tablaPosicionRepository,
-            GoleadorRepository goleadorRepository,
-            TarjetaRepository tarjetaRepository,
-            PartidoService partidoService) {
+        TablaPosicionRepository tablaPosicionRepository,
+        GoleadorRepository goleadorRepository,
+        TarjetaRepository tarjetaRepository,
+        PartidoService partidoService,
+        JugadorRepository jugadorRepository // ⬅️ Agregado aquí
+    ) {
         this.tablaPosicionRepository = tablaPosicionRepository;
         this.goleadorRepository = goleadorRepository;
         this.tarjetaRepository = tarjetaRepository;
         this.partidoService = partidoService;
+        this.jugadorRepository = jugadorRepository; // ⬅️ Guardar
     }
 
     @GetMapping("/tabla-posiciones/{torneoId}")
@@ -54,12 +60,27 @@ public class EstadisticasController {
     }
 
     @GetMapping("/goleadores/{torneoId}")
-    public ResponseEntity<List<Goleador>> obtenerGoleadores(@PathVariable String torneoId) {
+    public ResponseEntity<List<Map<String, Object>>> obtenerGoleadores(@PathVariable String torneoId) {
         List<Goleador> goleadores = goleadorRepository.findByTorneoIdAndEliminadoFalse(torneoId);
         goleadores.sort((a, b) -> Integer.compare(b.getGoles(), a.getGoles()));
-        return ResponseEntity.ok(goleadores.stream().limit(10).toList());
+    
+        List<Map<String, Object>> respuesta = goleadores.stream().map(g -> {
+            Map<String, Object> datos = new HashMap<>();
+            datos.put("goles", g.getGoles());
+            datos.put("jugadorId", g.getJugadorId());
+    
+            jugadorRepository.findById(g.getJugadorId()).ifPresent(jugador -> {
+                datos.put("nombre", jugador.getNombre());
+                datos.put("apellido", jugador.getApellido());
+                datos.put("fotoUrl", jugador.getFotoUrl()); // si tienes
+                datos.put("equipoId", jugador.getEquipoId()); // si ocupas escudo luego
+            });
+    
+            return datos;
+        }).toList();
+    
+        return ResponseEntity.ok(respuesta);
     }
-
     @GetMapping("/tarjetas/{torneoId}")
     public ResponseEntity<List<Map<String, Object>>> obtenerTarjetas(@PathVariable String torneoId) {
         List<Tarjeta> tarjetas = tarjetaRepository.findByTorneoIdAndEliminadoFalse(torneoId);

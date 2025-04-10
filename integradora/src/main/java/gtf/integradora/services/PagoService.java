@@ -1,12 +1,6 @@
 package gtf.integradora.services;
 
-import gtf.integradora.entity.Pago;
-import gtf.integradora.entity.PagoDTO;
-import gtf.integradora.repository.EquipoRepository;
-import gtf.integradora.repository.TorneoRepository;
-import gtf.integradora.repository.DuenoRepository;
-import gtf.integradora.repository.PagoRepository;
-
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -114,5 +108,38 @@ public class PagoService {
 
     public boolean tienePagoAprobado(String equipoId) {
         return !pagoRepository.findByEquipoIdAndEstatusAndEliminadoFalse(equipoId, "pagado").isEmpty();
+    }
+    
+
+    public List<Pago> obtenerTodosLosPagosConMultaActualizada() {
+        aplicarMultaPorRetraso(); // Aplica la lógica de multa antes de devolver
+        return pagoRepository.findByEliminadoFalse();
+    }
+
+    private void aplicarMultaPorRetraso() {
+        List<Pago> pagosPendientes = pagoRepository.findByEstatusAndEliminadoFalse("pendiente");
+
+        Date ahora = new Date();
+        for (Pago pago : pagosPendientes) {
+            if (pago.getFechaPago() == null)
+                continue;
+
+            long diasDiferencia = (ahora.getTime() - pago.getFechaPago().getTime()) / (1000 * 60 * 60 * 24);
+            if (diasDiferencia >= 3 && pago.getMonto() < montoBaseConMulta(pago.getTipo())) {
+                // Agregar multa si no se ha aplicado aún
+                pago.setMonto(pago.getMonto() + 50);
+                pagoRepository.save(pago);
+            }
+        }
+    }
+
+    private float montoBaseConMulta(String tipo) {
+        if ("arbitraje".equalsIgnoreCase(tipo))
+            return 200;
+        if ("uso_de_cancha".equalsIgnoreCase(tipo))
+            return 150;
+        if ("inscripcion".equalsIgnoreCase(tipo))
+            return 0; // no se multa
+        return Float.MAX_VALUE;
     }
 }

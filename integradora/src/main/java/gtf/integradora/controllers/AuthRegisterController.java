@@ -66,43 +66,43 @@ public class AuthRegisterController {
     }
 
     @PostMapping("/register/arbitro")
-public ResponseEntity<?> registrarArbitro(@RequestBody RegistroArbitroRequest request) {
-    if (usuarioRepository.findByEmail(request.getCorreo()).isPresent()) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya existe un usuario con ese correo");
-    }
-
-    // Crear usuario
-    Usuario usuario = new Usuario();
-    usuario.setEmail(request.getCorreo());
-    usuario.setPassword(passwordEncoder.encode(request.getPassword()));
-    usuario.setRoles(request.getRoles());
-    usuario.setEliminado(false);
-    usuario = usuarioRepository.save(usuario);
-
-    // Crear árbitro vinculado al usuario
-    Arbitro arbitro = new Arbitro();
-    arbitro.setNombre(request.getNombre());
-    arbitro.setApellido(request.getApellido());
-    arbitro.setIdUsuario(usuario.getId());
-    arbitro.setEliminado(false);
-
-    try {
-        // 🔐 Encriptar la imagen (si viene incluida)
-        if (request.getFotoUrl() != null && !request.getFotoUrl().isEmpty()) {
-            String encryptedImage = EncryptUtil.encrypt(request.getFotoUrl());
-            arbitro.setFotoUrl(encryptedImage);
-        } else {
-            arbitro.setFotoUrl(null);
+    public ResponseEntity<?> registrarArbitro(@RequestBody RegistroArbitroRequest request) {
+        if (usuarioRepository.findByEmail(request.getCorreo()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya existe un usuario con ese correo");
         }
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error al encriptar la imagen del árbitro.");
+
+        // Crear usuario
+        Usuario usuario = new Usuario();
+        usuario.setEmail(request.getCorreo());
+        usuario.setPassword(passwordEncoder.encode(request.getPassword()));
+        usuario.setRoles(request.getRoles());
+        usuario.setEliminado(false);
+        usuario = usuarioRepository.save(usuario);
+
+        // Crear árbitro vinculado al usuario
+        Arbitro arbitro = new Arbitro();
+        arbitro.setNombre(request.getNombre());
+        arbitro.setApellido(request.getApellido());
+        arbitro.setIdUsuario(usuario.getId());
+        arbitro.setEliminado(false);
+
+        try {
+            // 🔐 Encriptar la imagen (si viene incluida)
+            if (request.getFotoUrl() != null && !request.getFotoUrl().isEmpty()) {
+                String encryptedImage = EncryptUtil.encrypt(request.getFotoUrl());
+                arbitro.setFotoUrl(encryptedImage);
+            } else {
+                arbitro.setFotoUrl(null);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al encriptar la imagen del árbitro.");
+        }
+
+        Arbitro guardado = arbitroRepository.save(arbitro);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
     }
-
-    Arbitro guardado = arbitroRepository.save(arbitro);
-
-    return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
-}
 
     @PostMapping("/register/admin")
     public ResponseEntity<?> registrarAdministrador(@RequestBody RegistroAdministradorRequest request) {

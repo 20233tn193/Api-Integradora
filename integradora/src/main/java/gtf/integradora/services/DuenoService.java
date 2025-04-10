@@ -46,4 +46,9 @@ public class DuenoService {
         dueno.setEliminado(true);
         duenoRepository.save(dueno);
     }
+
+    public Optional<Dueno> obtenerPorIdUsuario(String idUsuario) {
+        return duenoRepository.findByIdUsuario(idUsuario);
+    }
+
 }

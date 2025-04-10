@@ -1,18 +1,24 @@
 package gtf.integradora.dto;
 
 public class InscripcionRequestDTO {
-    private String duenoId;
+    private String equipoId;
     private String torneoId;
-    private String nombreEquipo;
-    private String logoUrl;
 
-    // Getters y setters
-    public String getDuenoId() {
-        return duenoId;
+    
+    public InscripcionRequestDTO() {
     }
 
-    public void setDuenoId(String duenoId) {
-        this.duenoId = duenoId;
+    public InscripcionRequestDTO(String equipoId, String torneoId) {
+        this.equipoId = equipoId;
+        this.torneoId = torneoId;
+    }
+
+    public String getEquipoId() {
+        return equipoId;
+    }
+
+    public void setEquipoId(String equipoId) {
+        this.equipoId = equipoId;
     }
 
     public String getTorneoId() {
@@ -21,21 +27,5 @@ public class InscripcionRequestDTO {
 
     public void setTorneoId(String torneoId) {
         this.torneoId = torneoId;
-    }
-
-    public String getNombreEquipo() {
-        return nombreEquipo;
-    }
-
-    public void setNombreEquipo(String nombreEquipo) {
-        this.nombreEquipo = nombreEquipo;
-    }
-
-    public String getLogoUrl() {
-        return logoUrl;
-    }
-
-    public void setLogoUrl(String logoUrl) {
-        this.logoUrl = logoUrl;
     }
 }

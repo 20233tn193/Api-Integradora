@@ -2,7 +2,6 @@ package gtf.integradora.controllers;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +40,7 @@ public class PartidoController {
 
     @PostMapping("/generar-jornada/{torneoId}")
     public List<Partido> generarSiguienteJornada(@PathVariable String torneoId) {
+        System.out.println("⚽ Entró al endpoint generar jornada con torneoId: " + torneoId);
         return partidoGeneratorService.generarSiguienteJornada(torneoId);
     }
 
@@ -81,9 +81,6 @@ public class PartidoController {
     public ResponseEntity<Partido> registrarResultado(@PathVariable String partidoId,
             @RequestBody RegistroPartidoDTO datos,
             Authentication authentication) {
-        if (!authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_ARBITRO"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         try {
             Partido partidoActualizado = partidoService.registrarResultado(partidoId, datos.getRegistro());

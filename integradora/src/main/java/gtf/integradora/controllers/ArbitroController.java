@@ -151,7 +151,6 @@ public class ArbitroController {
     }
 
     @GetMapping("/usuario/{idUsuario}")
-<<<<<<< HEAD
 public ResponseEntity<?> obtenerPorUsuarioId(@PathVariable String idUsuario) {
     Optional<Arbitro> arbitroOpt = arbitroService.obtenerPorUsuarioId(idUsuario);
     if (arbitroOpt.isEmpty()) {
@@ -170,23 +169,4 @@ public ResponseEntity<?> obtenerPorUsuarioId(@PathVariable String idUsuario) {
 
     return ResponseEntity.ok(arbitro);
 }
-=======
-    public ResponseEntity<Arbitro> obtenerPorIdUsuario(@PathVariable String idUsuario) {
-        Optional<Arbitro> arbitroOpt = arbitroService.obtenerPorIdUsuario(idUsuario);
-        if (arbitroOpt.isEmpty())
-            return ResponseEntity.notFound().build();
-
-        Arbitro arbitro = arbitroOpt.get();
-        try {
-            if (arbitro.getFotoUrl() != null && arbitro.getFotoUrl().startsWith("ENC(")) {
-                arbitro.setFotoUrl(EncryptUtil.decrypt(arbitro.getFotoUrl()));
-            }
-        } catch (Exception e) {
-            arbitro.setFotoUrl(null);
-        }
-
-        return ResponseEntity.ok(arbitro);
-    }
-
->>>>>>> 52e9bdacdddc498053c771bfd6a2ad53d4cac822
 }

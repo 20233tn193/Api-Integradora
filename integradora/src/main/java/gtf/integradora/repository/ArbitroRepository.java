@@ -14,4 +14,6 @@ public interface ArbitroRepository extends MongoRepository<Arbitro, String> {
     Optional<Arbitro> findByIdAndEliminadoFalse(String id);
 
     List<Arbitro> findByEliminadoFalse();
+
+    Optional<Arbitro> findByIdUsuario(String idUsuario);
 }

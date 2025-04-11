@@ -48,4 +48,8 @@ public class ArbitroService {
         arbitro.setEliminado(true);
         arbitroRepository.save(arbitro);
     }
+
+    public Optional<Arbitro> obtenerPorUsuarioId(String idUsuario) {
+        return arbitroRepository.findByIdUsuario(idUsuario);
+    }
 }

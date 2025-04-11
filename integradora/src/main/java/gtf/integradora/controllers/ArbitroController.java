@@ -142,4 +142,24 @@ public class ArbitroController {
         arbitroService.eliminarArbitro(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/usuario/{idUsuario}")
+public ResponseEntity<?> obtenerPorUsuarioId(@PathVariable String idUsuario) {
+    Optional<Arbitro> arbitroOpt = arbitroService.obtenerPorUsuarioId(idUsuario);
+    if (arbitroOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el árbitro para el usuario dado.");
+    }
+
+    Arbitro arbitro = arbitroOpt.get();
+
+    try {
+        if (arbitro.getFotoUrl() != null && arbitro.getFotoUrl().startsWith("ENC(")) {
+            arbitro.setFotoUrl(EncryptUtil.decrypt(arbitro.getFotoUrl()));
+        }
+    } catch (Exception e) {
+        arbitro.setFotoUrl(null);
+    }
+
+    return ResponseEntity.ok(arbitro);
+}
 }

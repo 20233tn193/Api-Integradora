@@ -1,4 +1,5 @@
 package gtf.integradora.controllers;
+// PagoController.java
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import gtf.integradora.entity.Pago;
+import gtf.integradora.entity.PagoDTO;
 import gtf.integradora.services.PagoService;
 
 @RestController
@@ -31,6 +34,11 @@ public class PagoController {
     @GetMapping("/torneo/{torneoId}")
     public ResponseEntity<List<Pago>> obtenerPorTorneo(@PathVariable String torneoId) {
         return ResponseEntity.ok(pagoService.obtenerPorTorneo(torneoId));
+    }
+
+    @GetMapping("/torneo/{torneoId}/detallado")
+    public ResponseEntity<List<PagoDTO>> obtenerPagosDetallados(@PathVariable String torneoId) {
+        return ResponseEntity.ok(pagoService.obtenerPagosDetalladosPorTorneo(torneoId));
     }
 
     @GetMapping("/equipo/{equipoId}")
@@ -65,9 +73,8 @@ public class PagoController {
         pagoService.eliminarPago(id);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/todos")
-    public ResponseEntity<List<Pago>> obtenerTodosLosPagos() {
-        return ResponseEntity.ok(pagoService.obtenerTodosLosPagosConMultaActualizada());
-    }
+    @GetMapping("/detallados")
+public ResponseEntity<List<PagoDTO>> obtenerTodosLosPagosDetallados() {
+    return ResponseEntity.ok(pagoService.obtenerTodosLosPagosDetallados());
+}
 }

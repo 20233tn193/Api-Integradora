@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import gtf.integradora.dto.InscripcionRequestDTO;
 import gtf.integradora.entity.Equipo;
+import gtf.integradora.entity.EquipoConDuenoDTO;
 import gtf.integradora.services.CredencialService;
 import gtf.integradora.services.EquipoService;
 import org.springframework.http.HttpHeaders;
@@ -38,9 +39,15 @@ public class EquipoController {
         return ResponseEntity.ok(equipoService.crearEquipo(equipo));
     }
 
+    // ✅ Ruta única sin conflicto
     @GetMapping("/torneo/{torneoId}")
     public ResponseEntity<List<Equipo>> obtenerPorTorneo(@PathVariable String torneoId) {
         return ResponseEntity.ok(equipoService.obtenerPorTorneo(torneoId));
+    }
+
+    @GetMapping("/torneo-con-dueno/{torneoId}")
+    public ResponseEntity<List<EquipoConDuenoDTO>> obtenerConDueno(@PathVariable String torneoId) {
+        return ResponseEntity.ok(equipoService.obtenerEquiposConDuenoPorTorneo(torneoId));
     }
 
     @GetMapping("/dueño/{dueñoId}")

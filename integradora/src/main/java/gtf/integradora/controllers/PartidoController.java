@@ -15,20 +15,27 @@ import org.springframework.security.core.Authentication;
 import gtf.integradora.dto.RegistroPartidoDTO;
 import gtf.integradora.dto.ReprogramarPartidoDTO;
 import gtf.integradora.entity.Partido;
+import gtf.integradora.entity.PartidoDTO;
 import gtf.integradora.services.PartidoGeneratorService;
 import gtf.integradora.services.PartidoService;
+import gtf.integradora.repository.EquipoRepository;
 
 @RestController
 @RequestMapping("/api/partidos")
 public class PartidoController {
 
     private final PartidoService partidoService;
-
     private final PartidoGeneratorService partidoGeneratorService;
+    private final EquipoRepository equipoRepository;
 
-    public PartidoController(PartidoService partidoService, PartidoGeneratorService partidoGeneratorService) {
+    public PartidoController(
+        PartidoService partidoService,
+        PartidoGeneratorService partidoGeneratorService,
+        EquipoRepository equipoRepository
+    ) {
         this.partidoService = partidoService;
         this.partidoGeneratorService = partidoGeneratorService;
+        this.equipoRepository = equipoRepository;
     }
 
     @PostMapping("/generar-jornada/{torneoId}")
@@ -104,8 +111,36 @@ public class PartidoController {
     }
 
     @GetMapping("/calendario/{torneoId}")
-    public ResponseEntity<Map<Integer, List<Partido>>> obtenerCalendario(@PathVariable String torneoId) {
-        Map<Integer, List<Partido>> calendario = partidoService.obtenerCalendarioPorJornada(torneoId);
-        return ResponseEntity.ok(calendario);
+    public ResponseEntity<Map<Integer, List<PartidoDTO>>> obtenerCalendario(@PathVariable String torneoId) {
+        Map<Integer, List<Partido>> calendarioOriginal = partidoService.obtenerCalendarioPorJornada(torneoId);
+        Map<Integer, List<PartidoDTO>> calendarioDTO = new java.util.HashMap<>();
+
+        for (Map.Entry<Integer, List<Partido>> entry : calendarioOriginal.entrySet()) {
+            List<PartidoDTO> partidosDTO = entry.getValue().stream().map(p -> {
+                PartidoDTO dto = new PartidoDTO();
+                dto.id = p.getId();
+                dto.nombreEquipoA = p.getNombreEquipoA();
+                dto.nombreEquipoB = p.getNombreEquipoB();
+                dto.nombreCampo = p.getNombreCampo();
+                dto.nombreCancha = p.getNombreCancha();
+                dto.nombreArbitro = p.getNombreArbitro();
+                dto.fecha = p.getFecha();
+                dto.hora = p.getHora();
+
+                equipoRepository.findByIdAndEliminadoFalse(p.getEquipoAId()).ifPresent(eqA -> {
+                    dto.logoEquipoA = eqA.getLogoUrl();
+                });
+
+                equipoRepository.findByIdAndEliminadoFalse(p.getEquipoBId()).ifPresent(eqB -> {
+                    dto.logoEquipoB = eqB.getLogoUrl();
+                });
+
+                return dto;
+            }).toList();
+
+            calendarioDTO.put(entry.getKey(), partidosDTO);
+        }
+
+        return ResponseEntity.ok(calendarioDTO);
     }
-}
+} 

@@ -10,6 +10,7 @@ import gtf.integradora.entity.Jugador;
 
 @Repository
 public interface JugadorRepository extends MongoRepository<Jugador, String> {
+    Optional<Jugador> findById(String id);
 
     List<Jugador> findByEquipoIdAndEliminadoFalse(String equipoId);
 

@@ -12,6 +12,8 @@ public class Equipo {
     private String logoUrl;
     private String duenoId;
     private String torneoId;
+    private String escudoUrl; // ✅ NUEVO CAMPO
+
 
     private boolean eliminado = false;
 

@@ -38,6 +38,12 @@ public class TorneoController {
         }
     }
 
+    @GetMapping("/tarjetas-debug/{torneoId}")
+    public ResponseEntity<String> debugTarjetas(@PathVariable String torneoId) {
+        System.out.println("📦 Debug tarjetas llamado con torneoId: " + torneoId);
+        return ResponseEntity.ok("Debug activado para torneoId: " + torneoId);
+    }
+
     @PostMapping
     public ResponseEntity<Torneo> crear(@RequestBody Torneo torneo) {
         return ResponseEntity.ok(torneoService.crearTorneo(torneo));
@@ -75,4 +81,4 @@ public class TorneoController {
             return ResponseEntity.notFound().build();
         }
     }
-}
+} 

@@ -1,6 +1,7 @@
 package gtf.integradora.security;
 
 import java.util.stream.Collectors;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -92,6 +93,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/estadisticas/**").permitAll()
                         .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/torneos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
+                        .requestMatchers("/api/estadisticas/**").permitAll()
+
+
+                        // ✅ Acceso público a los pagos detallados
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
+
+                        // ✅ Acceso restringido a lo demás de pagos
+                        .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
 
                         // Rutas privadas por rol
                         .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
@@ -103,13 +115,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
                         
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
+                        .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
                         .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
 
                         
 
 
-                        // Cualquier otra requiere token
+                        // Todo lo demás requiere autenticación
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)

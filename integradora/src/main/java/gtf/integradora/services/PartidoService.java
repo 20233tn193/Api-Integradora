@@ -316,7 +316,7 @@ public class PartidoService {
     }
 
     // Agregue este metodo para hacer automatico la generacion
-    //de jornadas - Abril 03 - 3:41 am
+    // de jornadas - Abril 03 - 3:41 am
 
     public void verificarYGenerarSiguienteJornada(String torneoId) {
         List<Partido> partidos = partidoRepository.findByTorneoIdAndEliminadoFalse(torneoId);

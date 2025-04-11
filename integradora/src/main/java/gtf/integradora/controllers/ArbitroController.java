@@ -40,7 +40,8 @@ public class ArbitroController {
                 arbitro.setFotoUrl(encrypted);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al encriptar imagen en creación");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al encriptar imagen en creación");
         }
 
         Arbitro creado = arbitroService.crearArbitro(arbitro);
@@ -51,7 +52,7 @@ public class ArbitroController {
     public ResponseEntity<List<Map<String, Object>>> obtenerTodos() {
         List<Arbitro> arbitros = arbitroService.obtenerTodos();
         List<Map<String, Object>> resultado = new ArrayList<>();
-    
+
         for (Arbitro arbitro : arbitros) {
             Map<String, Object> map = new HashMap<>();
             map.put("id", arbitro.getId());
@@ -60,7 +61,7 @@ public class ArbitroController {
             map.put("celular", arbitro.getCelular());
             map.put("idUsuario", arbitro.getIdUsuario());
             map.put("eliminado", arbitro.isEliminado());
-    
+
             // 🔐 Desencriptar imagen
             try {
                 if (arbitro.getFotoUrl() != null && arbitro.getFotoUrl().startsWith("ENC(")) {
@@ -71,24 +72,27 @@ public class ArbitroController {
                 }
             } catch (Exception e) {
                 map.put("fotoUrl", null);
-                System.out.println("❌ Error al desencriptar imagen del árbitro " + arbitro.getId() + ": " + e.getMessage());
+                System.out.println(
+                        "❌ Error al desencriptar imagen del árbitro " + arbitro.getId() + ": " + e.getMessage());
             }
-    
+
             Optional<Usuario> usuarioOpt = usuarioRepository.findById(arbitro.getIdUsuario());
             usuarioOpt.ifPresent(usuario -> {
                 map.put("correo", usuario.getEmail());
                 map.put("contrasena", usuario.getPassword());
             });
-    
+
             resultado.add(map);
         }
-    
+
         return ResponseEntity.ok(resultado);
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<Arbitro> obtenerPorId(@PathVariable String id) {
         Optional<Arbitro> arbitroOpt = arbitroService.obtenerPorId(id);
-        if (arbitroOpt.isEmpty()) return ResponseEntity.notFound().build();
+        if (arbitroOpt.isEmpty())
+            return ResponseEntity.notFound().build();
 
         Arbitro arbitro = arbitroOpt.get();
         try {
@@ -108,17 +112,19 @@ public class ArbitroController {
         System.out.println("ID Usuario: " + arbitro.getIdUsuario());
         System.out.println("Nombre: " + arbitro.getNombre());
         System.out.println("Apellido: " + arbitro.getApellido());
-        System.out.println("Foto (primeros 100 chars): " + (arbitro.getFotoUrl() != null ? arbitro.getFotoUrl().substring(0, Math.min(100, arbitro.getFotoUrl().length())) + "..." : "null"));
-    
+        System.out.println("Foto (primeros 100 chars): " + (arbitro.getFotoUrl() != null
+                ? arbitro.getFotoUrl().substring(0, Math.min(100, arbitro.getFotoUrl().length())) + "..."
+                : "null"));
+
         if (arbitro.getIdUsuario() == null) {
             return ResponseEntity.badRequest().body("El campo idUsuario es obligatorio.");
         }
-    
+
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(arbitro.getIdUsuario());
         if (usuarioOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el usuario asociado.");
         }
-    
+
         try {
             String nuevaImagen = arbitro.getFotoUrl();
             if (nuevaImagen != null && !nuevaImagen.isEmpty() && !nuevaImagen.startsWith("ENC(")) {
@@ -132,14 +138,34 @@ public class ArbitroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al encriptar la imagen del árbitro durante actualización.");
         }
-    
+
         Arbitro actualizado = arbitroService.actualizarArbitro(id, arbitro);
         System.out.println("✅ Árbitro actualizado con ID: " + actualizado.getId());
         return ResponseEntity.ok(actualizado);
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
         arbitroService.eliminarArbitro(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<Arbitro> obtenerPorIdUsuario(@PathVariable String idUsuario) {
+        Optional<Arbitro> arbitroOpt = arbitroService.obtenerPorIdUsuario(idUsuario);
+        if (arbitroOpt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Arbitro arbitro = arbitroOpt.get();
+        try {
+            if (arbitro.getFotoUrl() != null && arbitro.getFotoUrl().startsWith("ENC(")) {
+                arbitro.setFotoUrl(EncryptUtil.decrypt(arbitro.getFotoUrl()));
+            }
+        } catch (Exception e) {
+            arbitro.setFotoUrl(null);
+        }
+
+        return ResponseEntity.ok(arbitro);
+    }
+
 }

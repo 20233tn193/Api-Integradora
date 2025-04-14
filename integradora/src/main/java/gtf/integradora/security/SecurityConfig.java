@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,14 +40,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authBuilder.userDetailsService(username -> {
+    public UserDetailsService userDetailsService() {
+        return username -> {
             Usuario usuario = usuarioRepository.findByEmail(username)
                     .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
             return new User(usuario.getEmail(), usuario.getPassword(),
                     usuario.getRoles().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
-        }).passwordEncoder(passwordEncoder());
+        };
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authBuilder.userDetailsService(userDetailsService())
+                   .passwordEncoder(passwordEncoder());
         return authBuilder.build();
     }
 
@@ -97,7 +104,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
                         .requestMatchers("/api/estadisticas/**").permitAll()
 
-
                         // ✅ Acceso público a los pagos detallados
                         .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
@@ -113,14 +119,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
-                        
+
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
                         .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
                         .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
-
-                        
-
 
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated())

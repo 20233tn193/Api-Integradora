@@ -53,7 +53,7 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authBuilder.userDetailsService(userDetailsService())
-                   .passwordEncoder(passwordEncoder());
+                .passwordEncoder(passwordEncoder());
         return authBuilder.build();
     }
 
@@ -70,7 +70,6 @@ public class SecurityConfig {
         return source;
     }
 
-    // 🔓 Configuración para desarrollo
     @Bean
     @Profile("dev")
     public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
@@ -81,59 +80,69 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔒 Configuración para producción
     @Bean
     @Profile("prod")
     public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
-                .authorizeHttpRequests(auth -> auth
-                        // Swagger
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/swagger-ui.html",
-                                "/webjars/**"
-                        ).permitAll()
+            .authorizeHttpRequests(auth -> auth
+                // Swagger
+                .requestMatchers(
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/swagger-ui.html",
+                        "/webjars/**"
+                ).permitAll()
 
-                        // Rutas públicas
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/estadisticas/**").permitAll()
-                        .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/torneos").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
-                        .requestMatchers("/api/estadisticas/**").permitAll()
+                // Rutas públicas
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/estadisticas/**").permitAll()
+                .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/torneos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
 
-                        // Pagos públicos
-                        .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
+                // Pagos públicos
+                .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
 
-                        // Pagos restringidos
-                        .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
+                // Pagos accesibles por DUEÑO
+                .requestMatchers("/api/pagos/dueno/**").hasAuthority("DUENO")
 
-                        // Rutas privadas
-                        .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+                // 📄 Permitir DUENO descargar credenciales PDF
+                .requestMatchers(HttpMethod.GET, "/api/equipos/{equipoId}/credenciales").hasAnyAuthority("DUENO", "ADMIN")
 
-                        // ✅ Permitir árbitro ver su propia info
-                        .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
+                // ✅ Rutas específicas permitidas para DUEÑO
+                .requestMatchers(HttpMethod.GET, "/api/equipos/dueño/**").hasAnyAuthority("DUENO", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/equipos/torneo-con-dueno/**").hasAnyAuthority("DUENO", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/jugadores/equipo/**").hasAnyAuthority("DUENO", "ADMIN")
+                .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
 
-                        // Resto de árbitros solo admin
-                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+                // Pagos restringidos solo para ADMIN
+                .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
 
-                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
+                // Otras rutas solo para ADMIN
+                .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
-                        .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
-                        .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
-                        .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
+                // Árbitros accediendo a su propia info
+                .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
+                .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
+                .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
 
-                        .anyRequest().authenticated())
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),
-                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
-                .formLogin(form -> form.disable())
-                .logout(logout -> logout.disable());
+                // ⛔ El resto de /api/equipos/** solo para ADMIN
+                .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
+
+                // Bloquear el resto
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),
+                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+            .formLogin(form -> form.disable())
+            .logout(logout -> logout.disable());
+
         return http.build();
     }
 }

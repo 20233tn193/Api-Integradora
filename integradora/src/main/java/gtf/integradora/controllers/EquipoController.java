@@ -16,6 +16,8 @@ import gtf.integradora.entity.Equipo;
 import gtf.integradora.entity.EquipoConDuenoDTO;
 import gtf.integradora.services.CredencialService;
 import gtf.integradora.services.EquipoService;
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -51,7 +53,11 @@ public class EquipoController {
     }
 
     @GetMapping("/dueño/{dueñoId}")
-    public ResponseEntity<List<Equipo>> obtenerPorDueño(@PathVariable String dueñoId) {
+    public ResponseEntity<List<Equipo>> obtenerPorDueño(
+            @PathVariable String dueñoId,
+            HttpServletRequest request // ✅ aquí lo inyectas
+    ) {
+        System.out.println("🔎 Header Authorization: " + request.getHeader("Authorization"));
         return ResponseEntity.ok(equipoService.obtenerPorDueno(dueñoId));
     }
 

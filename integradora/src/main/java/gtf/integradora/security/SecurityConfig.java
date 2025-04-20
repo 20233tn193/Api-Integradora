@@ -114,7 +114,7 @@ public class SecurityConfig {
                 // ✅ Rutas específicas permitidas para DUEÑO
                 .requestMatchers(HttpMethod.GET, "/api/equipos/dueño/**").hasAnyAuthority("DUENO", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/equipos/torneo-con-dueno/**").hasAnyAuthority("DUENO", "ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/jugadores/equipo/**").hasAnyAuthority("DUENO", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/jugadores/equipo/**").hasAnyAuthority("DUENO", "ARBITRO", "ADMIN")
                 .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
 
                 // Pagos restringidos solo para ADMIN
@@ -122,20 +122,21 @@ public class SecurityConfig {
 
                 // Otras rutas solo para ADMIN
                 .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+
+                // ✅ Permitir árbitro ver su propia info (DEBE IR ANTES)
+                .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
+
                 .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
-                // Árbitros accediendo a su propia info
-                .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
                 .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
                 .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
 
                 // ⛔ El resto de /api/equipos/** solo para ADMIN
                 .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
 
-                // Bloquear el resto
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),

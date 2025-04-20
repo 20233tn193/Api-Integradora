@@ -70,7 +70,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // 🔓 Configuración para desarrollo: todo permitido
+    // 🔓 Configuración para desarrollo
     @Bean
     @Profile("dev")
     public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
@@ -81,13 +81,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔒 Configuración para producción: roles aplicados
+    // 🔒 Configuración para producción
     @Bean
     @Profile("prod")
     public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger público
+                        // Swagger
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -104,28 +104,31 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
                         .requestMatchers("/api/estadisticas/**").permitAll()
 
-                        // ✅ Acceso público a los pagos detallados
+                        // Pagos públicos
                         .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
 
-                        // ✅ Acceso restringido a lo demás de pagos
+                        // Pagos restringidos
                         .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
 
-                        // Rutas privadas por rol
+                        // Rutas privadas
                         .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+
+                        // ✅ Permitir árbitro ver su propia info
+                        .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
+
+                        // Resto de árbitros solo admin
                         .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+
                         .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
-
                         .requestMatchers(HttpMethod.GET, "/api/torneos/**").hasAnyAuthority("ADMIN", "DUENO")
 
                         .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
-                        .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
                         .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
-                        .requestMatchers("/api/duenos/**").hasAuthority("DUENO")
+                        .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
 
-                        // Todo lo demás requiere autenticación
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)

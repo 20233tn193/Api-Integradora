@@ -71,12 +71,13 @@ public class JugadorService {
     public Jugador actualizarJugador(String id, Jugador actualizado) {
         Jugador jugador = jugadorRepository.findByIdAndEliminadoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Jugador no encontrado"));
-
+    
         jugador.setNombre(actualizado.getNombre());
         jugador.setApellido(actualizado.getApellido());
+        jugador.setCurp(actualizado.getCurp()); // ✅ Aquí está la línea que faltaba
         jugador.setFotoUrl(actualizado.getFotoUrl());
         jugador.setFechaNacimiento(actualizado.getFechaNacimiento());
-
+    
         return jugadorRepository.save(jugador);
     }
 

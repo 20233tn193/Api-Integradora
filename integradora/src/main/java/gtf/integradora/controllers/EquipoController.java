@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import gtf.integradora.dto.InscripcionRequestDTO;
 import gtf.integradora.entity.Equipo;
@@ -92,6 +93,17 @@ public class EquipoController {
                     .body(pdfBytes);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/inscribir-existente")
+    public ResponseEntity<String> inscribirEquipoExistente(@RequestParam String equipoId,
+            @RequestParam String torneoId) {
+        try {
+            String mensaje = equipoService.inscribirEquipoExistente(equipoId, torneoId);
+            return ResponseEntity.ok(mensaje);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

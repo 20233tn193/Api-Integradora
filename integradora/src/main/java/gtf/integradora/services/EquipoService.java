@@ -1,6 +1,7 @@
 package gtf.integradora.services;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,6 +112,39 @@ private DuenoRepository duenoRepository;
 
         return "Equipo inscrito correctamente. Se generó un pago pendiente.";
     }
+
+
+    public String inscribirEquipoExistente(String equipoId, String torneoId) {
+        Equipo equipo = equipoRepository.findByIdAndEliminadoFalse(equipoId)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+    
+        Torneo torneo = torneoRepository.findByIdAndEliminadoFalse(torneoId)
+                .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
+    
+        if (!"abierto".equalsIgnoreCase(torneo.getEstado())) {
+            throw new RuntimeException("El torneo ya no acepta inscripciones.");
+        }
+    
+        // Asociar equipo con el torneo
+        equipo.setTorneoId(torneoId);
+        equipoRepository.save(equipo);
+    
+        // Crear el pago de inscripción
+        Pago pago = new Pago();
+        pago.setEquipoId(equipo.getId());
+        pago.setDuenoId(equipo.getDuenoId());
+        pago.setTorneoId(torneo.getId());
+        pago.setTipo("inscripcion");
+        pago.setEstatus("pendiente");
+        pago.setMonto(torneo.getCosto());
+        pago.setFechaPago(new Date()); // ✅ ahora se registra cuando se crea
+        pago.setEliminado(false);
+        pagoRepository.save(pago);
+    
+        return "Equipo inscrito correctamente al torneo. Se generó un pago pendiente.";
+    }
+
+
     public List<EquipoConDuenoDTO> obtenerEquiposConDuenoPorTorneo(String torneoId) {
     List<Equipo> equipos = equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
 

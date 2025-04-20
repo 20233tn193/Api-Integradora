@@ -21,4 +21,6 @@ public interface JugadorRepository extends MongoRepository<Jugador, String> {
     int countByEquipoIdAndEliminadoFalse(String equipoId);
 
     boolean existsByCurpAndEliminadoFalse(String curp);
+
+    boolean existsByCurpIgnoreCaseAndEliminadoFalse(String curp);
 }

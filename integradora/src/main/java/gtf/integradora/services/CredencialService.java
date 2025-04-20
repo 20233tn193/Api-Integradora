@@ -126,25 +126,47 @@ public class CredencialService {
             Font normal = FontFactory.getFont(FontFactory.HELVETICA, 11);
             Font bold = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
 
-            info.addCell(createNoBorderCell(new Phrase(jugador.getNombre() + " " + jugador.getApellido(), boldBig), 10f));
+            info.addCell(
+                    createNoBorderCell(new Phrase(jugador.getNombre() + " " + jugador.getApellido(), boldBig), 10f));
             info.addCell(createNoBorderCell(new Phrase("CURP: " + jugador.getCurp(), normal), 10f));
             info.addCell(createNoBorderCell(new Phrase("Nacimiento: " + jugador.getFechaNacimiento(), normal), 10f));
             info.addCell(new Paragraph(" "));
 
             // LOGO EQUIPO
             try {
-                Image logoEquipo = Image.getInstance(new URL(equipo.getLogoUrl()));
+                Image logoEquipo;
+                if (equipo.getLogoUrl().startsWith("data:image")) {
+                    String[] parts = equipo.getLogoUrl().split(",");
+                    String metadata = parts[0]; // ejemplo: data:image/png;base64
+                    String base64Data = parts[1];
+                    String formato = "jpg"; // por defecto
+
+                    if (metadata.contains("image/")) {
+                        formato = metadata.substring(metadata.indexOf("/") + 1, metadata.indexOf(";"));
+                        if (formato.equals("jpeg"))
+                            formato = "jpg"; // estandarizar
+                    }
+
+                    byte[] logoBytes = Base64.getDecoder().decode(base64Data);
+                    BufferedImage logoImg = ImageIO.read(new ByteArrayInputStream(logoBytes));
+                    ByteArrayOutputStream logoStream = new ByteArrayOutputStream();
+                    ImageIO.write(logoImg, formato, logoStream);
+                    logoEquipo = Image.getInstance(logoStream.toByteArray());
+                } else {
+                    logoEquipo = Image.getInstance(new URL(equipo.getLogoUrl()));
+                }
+
                 logoEquipo.scaleToFit(60, 60);
                 PdfPCell logoCell = new PdfPCell(logoEquipo);
                 logoCell.setBorder(Rectangle.NO_BORDER);
                 logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 info.addCell(logoCell);
+                
             } catch (Exception e) {
                 info.addCell(createNoBorderCell(new Phrase("Logo equipo no disponible", normal), 10f));
             }
 
-            info.addCell(createNoBorderCell(new Phrase("        "+equipo.getNombre(), bold), 10f));
-            info.addCell(new Paragraph(" "));
+            info.addCell(createNoBorderCell(new Phrase("        " + equipo.getNombre(), bold), 10f));
 
             // LOGO TORNEO
             try {
@@ -158,7 +180,7 @@ public class CredencialService {
                 info.addCell(createNoBorderCell(new Phrase("Logo torneo no disponible", normal), 10f));
             }
 
-            info.addCell(createNoBorderCell(new Phrase("        "+torneo.getNombreTorneo(), bold), 10f));
+            info.addCell(createNoBorderCell(new Phrase("        " + torneo.getNombreTorneo(), bold), 10f));
 
             PdfPCell infoCell = new PdfPCell(info);
             infoCell.setBorder(Rectangle.NO_BORDER);

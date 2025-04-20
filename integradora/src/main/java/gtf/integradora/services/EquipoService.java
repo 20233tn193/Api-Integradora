@@ -1,6 +1,7 @@
 package gtf.integradora.services;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,28 +19,24 @@ import gtf.integradora.repository.PagoRepository;
 import gtf.integradora.repository.TorneoRepository;
 import gtf.integradora.repository.DuenoRepository;
 
-
 @Service
 public class EquipoService {
 
     private final EquipoRepository equipoRepository;
     private final TorneoRepository torneoRepository;
     private final PagoRepository pagoRepository;
-    
 
     public EquipoService(
-        EquipoRepository equipoRepository,
-        TorneoRepository torneoRepository,
-        PagoRepository pagoRepository
-    ) {
+            EquipoRepository equipoRepository,
+            TorneoRepository torneoRepository,
+            PagoRepository pagoRepository) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.pagoRepository = pagoRepository;
     }
+
     @Autowired
-private DuenoRepository duenoRepository;
-
-
+    private DuenoRepository duenoRepository;
 
     public Equipo crearEquipo(Equipo equipo) {
         equipo.setEliminado(false);
@@ -111,32 +108,63 @@ private DuenoRepository duenoRepository;
 
         return "Equipo inscrito correctamente. Se generó un pago pendiente.";
     }
+
     public List<EquipoConDuenoDTO> obtenerEquiposConDuenoPorTorneo(String torneoId) {
-    List<Equipo> equipos = equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
+        List<Equipo> equipos = equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
 
-    List<EquipoConDuenoDTO> resultado = new ArrayList<>();
+        List<EquipoConDuenoDTO> resultado = new ArrayList<>();
 
-    for (Equipo equipo : equipos) {
-        String nombreDueno = "Sin nombre";
+        for (Equipo equipo : equipos) {
+            String nombreDueno = "Sin nombre";
 
-        if (equipo.getDuenoId() != null) {
-            Dueno dueno = duenoRepository.findById(equipo.getDuenoId()).orElse(null);
-            if (dueno != null) {
-                nombreDueno = dueno.getNombre() + " " + dueno.getApellido();
+            if (equipo.getDuenoId() != null) {
+                Dueno dueno = duenoRepository.findById(equipo.getDuenoId()).orElse(null);
+                if (dueno != null) {
+                    nombreDueno = dueno.getNombre() + " " + dueno.getApellido();
+                }
             }
+
+            // Opcional: busca el pago de inscripción si lo manejas como entidad
+            // Buscar estatus de pago
+            String estatusPago = "Pendiente"; // por defecto
+            Optional<Pago> pagoOptional = pagoRepository.findByEquipoIdAndTipo(equipo.getId(), "inscripcion");
+            if (pagoOptional.isPresent()) {
+                estatusPago = pagoOptional.get().getEstatus();
+            }
+
+            resultado.add(new EquipoConDuenoDTO(equipo.getNombre(), nombreDueno, estatusPago));
         }
 
-        // Opcional: busca el pago de inscripción si lo manejas como entidad
-      // Buscar estatus de pago
-String estatusPago = "Pendiente"; // por defecto
-Optional<Pago> pagoOptional = pagoRepository.findByEquipoIdAndTipo(equipo.getId(), "inscripcion");
-if (pagoOptional.isPresent()) {
-    estatusPago = pagoOptional.get().getEstatus();
-}
-
-        resultado.add(new EquipoConDuenoDTO(equipo.getNombre(), nombreDueno, estatusPago));
+        return resultado;
     }
 
-    return resultado;
-}
+    public String inscribirEquipoExistente(String equipoId, String torneoId) {
+        Equipo equipo = equipoRepository.findByIdAndEliminadoFalse(equipoId)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+    
+        Torneo torneo = torneoRepository.findByIdAndEliminadoFalse(torneoId)
+                .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
+    
+        if (!"abierto".equalsIgnoreCase(torneo.getEstado())) {
+            throw new RuntimeException("El torneo ya no acepta inscripciones.");
+        }
+    
+        // Asociar equipo con el torneo
+        equipo.setTorneoId(torneoId);
+        equipoRepository.save(equipo);
+    
+        // Crear el pago de inscripción
+        Pago pago = new Pago();
+        pago.setEquipoId(equipo.getId());
+        pago.setDuenoId(equipo.getDuenoId());
+        pago.setTorneoId(torneo.getId());
+        pago.setTipo("inscripcion");
+        pago.setEstatus("pendiente");
+        pago.setMonto(torneo.getCosto());
+        pago.setFechaPago(new Date()); // ✅ ahora se registra cuando se crea
+        pago.setEliminado(false);
+        pagoRepository.save(pago);
+    
+        return "Equipo inscrito correctamente al torneo. Se generó un pago pendiente.";
+    }
 }

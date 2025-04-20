@@ -73,8 +73,9 @@ public class PagoController {
         pagoService.eliminarPago(id);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping("/detallados")
-public ResponseEntity<List<PagoDTO>> obtenerTodosLosPagosDetallados() {
-    return ResponseEntity.ok(pagoService.obtenerTodosLosPagosDetallados());
-}
+    public ResponseEntity<List<PagoDTO>> obtenerTodosLosPagosDetallados() {
+        return ResponseEntity.ok(pagoService.obtenerTodosLosPagosDetallados());
+    }
 }

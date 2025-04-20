@@ -18,7 +18,8 @@ public class JugadorService {
     private final EquipoRepository equipoRepository;
     private final PagoRepository pagoRepository; // Para validar inscripción pagada
 
-    public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository, PagoRepository pagoRepository) {
+    public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository,
+            PagoRepository pagoRepository) {
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.pagoRepository = pagoRepository;
@@ -34,10 +35,12 @@ public class JugadorService {
         String torneoId = equipo.getTorneoId();
         boolean curpDuplicada = jugadorRepository.findAll().stream()
                 .filter(j -> !j.isEliminado())
-                .anyMatch(j -> j.getCurp().equalsIgnoreCase(jugador.getCurp())
-                        && equipoRepository.findById(j.getEquipoId())
-                        .map(e -> torneoId.equals(e.getTorneoId()))
-                        .orElse(false));
+                .filter(j -> j.getCurp().equalsIgnoreCase(jugador.getCurp()))
+                .anyMatch(j -> {
+                    Optional<Equipo> eq = equipoRepository.findByIdAndEliminadoFalse(j.getEquipoId());
+                    return eq.map(e -> torneoId.equals(e.getTorneoId())).orElse(false);
+                });
+
         if (curpDuplicada) {
             throw new RuntimeException("El CURP ya ha sido registrado en este torneo.");
         }
@@ -53,7 +56,8 @@ public class JugadorService {
                 equipoId, torneoId, "inscripcion", "pagado");
 
         if (!tienePago) {
-            throw new RuntimeException("No puedes registrar jugadores hasta que el administrador apruebe el pago de inscripción.");
+            throw new RuntimeException(
+                    "No puedes registrar jugadores hasta que el administrador apruebe el pago de inscripción.");
         }
 
         jugador.setEliminado(false);

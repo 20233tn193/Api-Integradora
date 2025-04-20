@@ -103,6 +103,7 @@ public class SecurityConfig {
 
                 // Pagos públicos
                 .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/pagos/detallados").hasAnyAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
 
                 // Pagos accesibles por DUEÑO
@@ -135,7 +136,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
 
                 // ⛔ El resto de /api/equipos/** solo para ADMIN
+                .requestMatchers(HttpMethod.POST, "/api/equipos").hasAnyAuthority("DUENO", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/equipos/**").hasAnyAuthority("DUENO", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/equipos/inscribir-existente").hasAuthority("DUENO")
                 .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
+                
 
                 .anyRequest().authenticated()
             )

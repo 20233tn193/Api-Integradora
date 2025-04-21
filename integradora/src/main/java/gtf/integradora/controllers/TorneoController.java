@@ -30,10 +30,17 @@ public class TorneoController {
 
     @PostMapping("/{torneoId}/generar-jornada")
     public ResponseEntity<List<Partido>> generarJornada(@PathVariable String torneoId) {
+        System.out.println("📥 [POST] /generar-jornada");
+        System.out.println("📌 torneoId recibido: " + torneoId);
+        System.out.println("⚙️ Iniciando generación de jornada...");
+    
         try {
             List<Partido> nuevosPartidos = partidoGeneratorService.generarSiguienteJornada(torneoId);
+            System.out.println("✅ Jornada generada con éxito: " + nuevosPartidos.size() + " partidos creados");
             return ResponseEntity.ok(nuevosPartidos);
         } catch (Exception e) {
+            System.err.println("❌ Error al generar jornada para torneoId " + torneoId);
+            e.printStackTrace(); // muestra traza completa del error
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -81,4 +88,13 @@ public class TorneoController {
             return ResponseEntity.notFound().build();
         }
     }
+    @PutMapping("/iniciar/{torneoId}")
+public ResponseEntity<Torneo> iniciarTorneo(@PathVariable String torneoId) {
+    try {
+        Torneo torneo = torneoService.iniciarTorneo(torneoId);
+        return ResponseEntity.ok(torneo);
+    } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().build();
+    }
+}
 } 

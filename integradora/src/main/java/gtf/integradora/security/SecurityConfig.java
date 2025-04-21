@@ -103,12 +103,14 @@ public class SecurityConfig {
 
                 // Pagos públicos
                 .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/pagos/detallados").hasAnyAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
 
                 // Pagos accesibles por DUEÑO
                 .requestMatchers("/api/pagos/dueno/**").hasAuthority("DUENO")
 
+                .requestMatchers(HttpMethod.GET, "/api/pagos/detallados").hasAnyAuthority("ADMIN")
+
+                
                 // 📄 Permitir DUENO descargar credenciales PDF
                 .requestMatchers(HttpMethod.GET, "/api/equipos/{equipoId}/credenciales").hasAnyAuthority("DUENO", "ADMIN")
 
@@ -118,22 +120,21 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/jugadores/equipo/**").hasAnyAuthority("DUENO", "ARBITRO", "ADMIN")
                 .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
 
-                // Pagos restringidos solo para ADMIN
-                .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
+                
 
                 // Otras rutas solo para ADMIN
                 .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
 
                 // ✅ Permitir árbitro ver su propia info (DEBE IR ANTES)
                 .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
-
+                .requestMatchers(HttpMethod.GET, "/api/arbitros/{id}/partidos").hasAuthority("ADMIN")
                 .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
                 .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
-                .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
+                .requestMatchers("/api/partidos/**").hasAnyAuthority("ADMIN","ARBITRO")
 
                 // ⛔ El resto de /api/equipos/** solo para ADMIN
                 .requestMatchers(HttpMethod.POST, "/api/equipos").hasAnyAuthority("DUENO", "ADMIN")
@@ -141,6 +142,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/equipos/inscribir-existente").hasAuthority("DUENO")
                 .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
                 
+// Pagos restringidos solo para ADMIN
+.requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
 
                 .anyRequest().authenticated()
             )

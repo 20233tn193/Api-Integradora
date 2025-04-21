@@ -66,4 +66,16 @@ public class TorneoService {
     
         return torneoRepository.save(torneo);
     }
+    public Torneo iniciarTorneo(String torneoId) {
+        Torneo torneo = torneoRepository.findByIdAndEliminadoFalse(torneoId)
+                .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
+    
+        if (!"abierto".equalsIgnoreCase(torneo.getEstado())) {
+            throw new RuntimeException("Solo se puede iniciar un torneo que esté en estado 'abierto'");
+        }
+    
+        torneo.setEstado("Cerrado");
+        torneo.setFechaInicio(LocalDate.now());
+        return torneoRepository.save(torneo);
+    }
 }

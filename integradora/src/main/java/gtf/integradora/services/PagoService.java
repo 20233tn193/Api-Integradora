@@ -59,7 +59,7 @@ public class PagoService {
 
     public List<PagoDTO> obtenerTodosLosPagosDetallados() {
         List<Pago> pagos = pagoRepository.findByEliminadoFalse();
-
+    
         return pagos.stream().map(p -> {
             PagoDTO dto = new PagoDTO();
             dto.setId(p.getId());
@@ -67,11 +67,22 @@ public class PagoService {
             dto.setFechaPago(p.getFechaPago());
             dto.setEstatus(p.getEstatus());
             dto.setMonto(p.getMonto());
-
-            equipoRepository.findById(p.getEquipoId()).ifPresent(e -> dto.setEquipoNombre(e.getNombre()));
-            duenoRepository.findById(p.getDuenoId()).ifPresent(d -> dto.setDuenoNombre(d.getNombre()));
-            torneoRepository.findById(p.getTorneoId()).ifPresent(t -> dto.setTorneoNombre(t.getNombreTorneo()));
-
+    
+            if (p.getEquipoId() != null) {
+                equipoRepository.findById(p.getEquipoId())
+                    .ifPresent(e -> dto.setEquipoNombre(e.getNombre()));
+            }
+    
+            if (p.getDuenoId() != null) {
+                duenoRepository.findById(p.getDuenoId())
+                    .ifPresent(d -> dto.setDuenoNombre(d.getNombre()));
+            }
+    
+            if (p.getTorneoId() != null) {
+                torneoRepository.findById(p.getTorneoId())
+                    .ifPresent(t -> dto.setTorneoNombre(t.getNombreTorneo()));
+            }
+    
             return dto;
         }).collect(Collectors.toList());
     }

@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-
 @Document(collection = "torneos")
 public class Torneo {
     @Id
@@ -20,8 +19,19 @@ public class Torneo {
 
     private boolean eliminado = false;
 
+    private String campeonId;
+
+    public String getCampeonId() {
+        return campeonId;
+    }
+
+    public void setCampeonId(String campeonId) {
+        this.campeonId = campeonId;
+    }
+
     // Constructor vacío
-    public Torneo() {}
+    public Torneo() {
+    }
 
     public String getId() {
         return id;
@@ -103,6 +113,4 @@ public class Torneo {
         this.fechaInicio = fechaInicio;
     }
 
-    
-    
 }

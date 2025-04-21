@@ -1,6 +1,8 @@
 package gtf.integradora.controllers;
 
 import java.util.List;
+
+import org.springframework.data.mongodb.core.aggregation.ComparisonOperators.Eq;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import gtf.integradora.entity.Partido;
 import gtf.integradora.entity.Torneo;
+import gtf.integradora.repository.EquipoRepository;
 import gtf.integradora.services.PartidoGeneratorService;
 import gtf.integradora.services.TorneoService;
 
@@ -22,10 +25,12 @@ public class TorneoController {
 
     private final TorneoService torneoService;
     private final PartidoGeneratorService partidoGeneratorService;
+    private final EquipoRepository equipoRepository;
 
-    public TorneoController(TorneoService torneoService, PartidoGeneratorService partidoGeneratorService) {
+    public TorneoController(TorneoService torneoService, PartidoGeneratorService partidoGeneratorService, EquipoRepository equipoRepository) {
         this.torneoService = torneoService;
         this.partidoGeneratorService = partidoGeneratorService;
+        this.equipoRepository = equipoRepository;
     }
 
     @PostMapping("/{torneoId}/generar-jornada")
@@ -55,11 +60,32 @@ public class TorneoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Torneo> obtenerPorId(@PathVariable String id) {
-        return torneoService.obtenerTorneoPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+public ResponseEntity<?> obtenerPorId(@PathVariable String id) {
+    return torneoService.obtenerTorneoPorId(id)
+            .map(torneo -> {
+                // Crear DTO personalizado
+                var datos = new java.util.HashMap<String, Object>();
+                datos.put("id", torneo.getId());
+                datos.put("nombreTorneo", torneo.getNombreTorneo());
+                datos.put("estado", torneo.getEstado());
+                datos.put("logoSeleccionado", torneo.getLogoSeleccionado());
+                datos.put("informacion", torneo.getInformacion());
+                datos.put("costo", torneo.getCosto());
+                datos.put("fechaInicio", torneo.getFechaInicio());
+                datos.put("fechaFin", torneo.getFechaFin());
+
+                if (torneo.getCampeonId() != null) {
+                    equipoRepository.findById(torneo.getCampeonId()).ifPresent(equipo -> {
+                        datos.put("campeonId", equipo.getId());
+                        datos.put("campeonNombre", equipo.getNombre());
+                        datos.put("campeonLogo", equipo.getLogoUrl());
+                    });
+                }
+
+                return ResponseEntity.ok(datos);
+            })
+            .orElse(ResponseEntity.notFound().build());
+}
 
     @PutMapping("/{id}")
     public ResponseEntity<Torneo> actualizar(@PathVariable String id, @RequestBody Torneo torneo) {

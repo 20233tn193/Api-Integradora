@@ -61,32 +61,40 @@ public class PartidoGeneratorService {
     public List<Partido> generarSiguienteJornada(String torneoId) {
         Torneo torneo = torneoRepository.findById(torneoId)
                 .orElseThrow(() -> new RuntimeException("Torneo no encontrado"));
-    
+
         if ("finalizado".equalsIgnoreCase(torneo.getEstado())) {
             throw new RuntimeException("No se puede generar jornadas para un torneo finalizado.");
         }
-    
+
         List<Equipo> equipos = equipoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
         List<Partido> partidosAnteriores = partidoRepository.findByTorneoIdAndEliminadoFalse(torneoId);
         List<Equipo> equiposElegibles = filtrarEquiposElegibles(equipos, partidosAnteriores);
-    
+
+        // 🏆 Si solo queda un equipo, declararlo campeón automáticamente
+        if (equiposElegibles.size() == 1) {
+            Equipo campeon = equiposElegibles.get(0);
+            torneo.setCampeonId(campeon.getId());
+            torneo.setEstado("FINALIZADO");
+            torneoRepository.save(torneo);
+            System.out.println("🏆 ¡Campeón declarado automáticamente!: " + campeon.getNombre());
+            return List.of(); // No generar más partidos
+        }
+
         int jornadaActual = partidosAnteriores.stream()
                 .mapToInt(Partido::getJornada)
                 .max()
                 .orElse(0);
-    
+
         int nuevaJornada = jornadaActual + 1;
-    
-        // ✅ Log para verificar
+
         System.out.println("✅ Generando jornada " + nuevaJornada + " para torneo: " + torneoId);
         System.out.println("🔎 Total equipos inscritos: " + equipos.size());
         System.out.println("🔎 Equipos elegibles (menos de 2 derrotas): " + equiposElegibles.size());
         System.out.println("🔁 Total partidos anteriores: " + partidosAnteriores.size());
-    
-        // ✅ Nueva lógica: si es primera jornada, todos van como ganadores
+
         List<Equipo> ganadores;
         List<Equipo> perdedores;
-    
+
         if (partidosAnteriores.isEmpty()) {
             ganadores = new ArrayList<>(equiposElegibles);
             perdedores = new ArrayList<>();
@@ -94,26 +102,80 @@ public class PartidoGeneratorService {
             ganadores = obtenerEquiposGanadores(equiposElegibles, partidosAnteriores);
             perdedores = obtenerEquiposPerdedores(equiposElegibles, partidosAnteriores);
         }
-    
+
+        Optional<Partido> granFinal = partidosAnteriores.stream()
+                .filter(p -> "Gran Final".equalsIgnoreCase(p.getFase()) && "finalizado".equalsIgnoreCase(p.getEstado()))
+                .findFirst();
+
+        if (granFinal.isPresent()) {
+            Partido finalPartido = granFinal.get();
+            String invictoId = encontrarInvictoId(equipos, partidosAnteriores);
+            int golesInvicto = contarGoles(finalPartido, invictoId);
+            int golesRival = contarGoles(finalPartido,
+                    finalPartido.getEquipoAId().equals(invictoId) ? finalPartido.getEquipoBId()
+                            : finalPartido.getEquipoAId());
+
+            if (golesRival > golesInvicto) {
+                System.out.println("🔁 El invicto perdió en la Gran Final, generando revancha");
+                List<Equipo> revanchistas = new ArrayList<>();
+                revanchistas.add(equipoRepository.findById(finalPartido.getEquipoAId()).orElseThrow());
+                revanchistas.add(equipoRepository.findById(finalPartido.getEquipoBId()).orElseThrow());
+
+                List<Enfrentamiento> revancha = generarEnfrentamientos(revanchistas, Collections.emptyList(),
+                        nuevaJornada);
+
+                List<Campo> campos = campoRepository.findByDisponibleTrueAndEliminadoFalse();
+                List<Arbitro> arbitros = arbitroRepository.findByEliminadoFalse();
+
+                List<Partido> partidosRevancha = partidoScheduler.asignarPartidos(revancha, campos, arbitros, torneoId,
+                        nuevaJornada);
+                partidosRevancha.forEach(p -> p.setFase("Revancha Final"));
+                partidosRevancha.forEach(this::crearPagosDePartido);
+                return partidoRepository.saveAll(partidosRevancha);
+            }
+        }
+
         List<Enfrentamiento> enfrentamientos = generarEnfrentamientos(ganadores, perdedores, nuevaJornada);
         System.out.println("🧩 Enfrentamientos generados: " + enfrentamientos.size());
-    
+
         List<Campo> campos = campoRepository.findByDisponibleTrueAndEliminadoFalse();
         List<Arbitro> arbitros = arbitroRepository.findByEliminadoFalse();
-    
+
         List<Partido> nuevosPartidos = partidoScheduler.asignarPartidos(
                 enfrentamientos, campos, arbitros, torneoId, nuevaJornada);
-    
+
         System.out.println("📍 Nuevos partidos generados: " + nuevosPartidos.size());
-    
+
         for (Partido partido : nuevosPartidos) {
             crearPagosDePartido(partido);
         }
-    
+
         actualizarFaseEquipos(torneoId);
         return partidoRepository.saveAll(nuevosPartidos);
     }
 
+    private String encontrarInvictoId(List<Equipo> equipos, List<Partido> partidos) {
+        Map<String, Integer> derrotas = new HashMap<>();
+        for (Partido partido : partidos) {
+            if (!"finalizado".equalsIgnoreCase(partido.getEstado()) || partido.getRegistro() == null)
+                continue;
+            int golesA = contarGoles(partido, partido.getEquipoAId());
+            int golesB = contarGoles(partido, partido.getEquipoBId());
+            if (golesA > golesB) {
+                derrotas.merge(partido.getEquipoBId(), 1, Integer::sum);
+            } else if (golesB > golesA) {
+                derrotas.merge(partido.getEquipoAId(), 1, Integer::sum);
+            }
+        }
+        return equipos.stream()
+                .filter(e -> derrotas.getOrDefault(e.getId(), 0) == 0)
+                .map(Equipo::getId)
+                .findFirst()
+                .orElse("");
+    }
+
+    // Métodos auxiliares no modificados (crearPago, crearPagosDePartido,
+    // contarGoles, etc.)
     // Aqui podemos cambiar el monto de los pagos
     private void crearPagosDePartido(Partido partido) {
         crearPago(partido, partido.getEquipoAId(), "arbitraje", 150);
@@ -142,6 +204,7 @@ public class PartidoGeneratorService {
 
     private List<Equipo> obtenerEquiposGanadores(List<Equipo> equipos, List<Partido> partidos) {
         Map<String, Integer> victoriasPorEquipo = new HashMap<>();
+        Set<String> equiposQueJugaron = new HashSet<>();
 
         for (Partido partido : partidos) {
             if (!"finalizado".equalsIgnoreCase(partido.getEstado()) || partido.getRegistro() == null)
@@ -149,6 +212,9 @@ public class PartidoGeneratorService {
 
             int golesA = contarGoles(partido, partido.getEquipoAId());
             int golesB = contarGoles(partido, partido.getEquipoBId());
+
+            equiposQueJugaron.add(partido.getEquipoAId());
+            equiposQueJugaron.add(partido.getEquipoBId());
 
             if (golesA > golesB) {
                 victoriasPorEquipo.merge(partido.getEquipoAId(), 1, Integer::sum);
@@ -157,30 +223,38 @@ public class PartidoGeneratorService {
             }
         }
 
+        // Ganadores: los que tienen al menos una victoria o no han jugado
         return equipos.stream()
-                .filter(e -> victoriasPorEquipo.getOrDefault(e.getId(), 0) >= 1)
+                .filter(e -> victoriasPorEquipo.getOrDefault(e.getId(), 0) >= 1
+                        || !equiposQueJugaron.contains(e.getId()))
                 .collect(Collectors.toList());
     }
 
     private List<Equipo> obtenerEquiposPerdedores(List<Equipo> equipos, List<Partido> partidos) {
-        Set<String> perdedoresIds = new HashSet<>();
+        Map<String, Integer> derrotas = new HashMap<>();
+        Set<String> equiposQueJugaron = new HashSet<>();
 
         for (Partido partido : partidos) {
             if (!"finalizado".equalsIgnoreCase(partido.getEstado()) || partido.getRegistro() == null)
                 continue;
 
-            int golesA = contarGoles(partido, partido.getEquipoAId());
-            int golesB = contarGoles(partido, partido.getEquipoBId());
+            String eqA = partido.getEquipoAId();
+            String eqB = partido.getEquipoBId();
+            int golesA = contarGoles(partido, eqA);
+            int golesB = contarGoles(partido, eqB);
+
+            equiposQueJugaron.add(eqA);
+            equiposQueJugaron.add(eqB);
 
             if (golesA > golesB) {
-                perdedoresIds.add(partido.getEquipoBId());
+                derrotas.merge(eqB, 1, Integer::sum);
             } else if (golesB > golesA) {
-                perdedoresIds.add(partido.getEquipoAId());
+                derrotas.merge(eqA, 1, Integer::sum);
             }
         }
 
         return equipos.stream()
-                .filter(e -> perdedoresIds.contains(e.getId()))
+                .filter(e -> derrotas.getOrDefault(e.getId(), 0) == 1)
                 .collect(Collectors.toList());
     }
 
@@ -211,7 +285,7 @@ public class PartidoGeneratorService {
             return 0;
 
         return partido.getRegistro().stream()
-                .filter(r -> obtenerEquipoIdPorJugadorId(r.getJugadorId()).equals(equipoId))
+                .filter(r -> equipoId.equals(r.getEquipoId()))
                 .mapToInt(RegistroJugador::getGoles)
                 .sum();
     }

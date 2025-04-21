@@ -65,7 +65,13 @@ public class EquipoController {
     @GetMapping("/{id}")
     public ResponseEntity<Equipo> obtenerPorId(@PathVariable String id) {
         return equipoService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
+                .map(equipo -> {
+                    String logo = equipo.getLogoUrl();
+                    if (logo != null && !logo.startsWith("data:image")) {
+                        equipo.setLogoUrl("data:image/jpeg;base64," + logo);
+                    }
+                    return ResponseEntity.ok(equipo);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

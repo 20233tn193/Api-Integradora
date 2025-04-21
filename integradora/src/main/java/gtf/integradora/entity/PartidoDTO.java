@@ -13,6 +13,11 @@ public class PartidoDTO {
     public String nombreArbitro;
     public Object fecha;
     public Object hora;
+
+    public Integer golesEquipoA;
+public Integer golesEquipoB;
+
+
     public String getId() {
         return id;
     }
@@ -73,6 +78,19 @@ public class PartidoDTO {
     public void setHora(Object hora) {
         this.hora = hora;
     }
+    public Integer getGolesEquipoA() {
+        return golesEquipoA;
+    }
+    public void setGolesEquipoA(Integer golesEquipoA) {
+        this.golesEquipoA = golesEquipoA;
+    }
+    public Integer getGolesEquipoB() {
+        return golesEquipoB;
+    }
+    public void setGolesEquipoB(Integer golesEquipoB) {
+        this.golesEquipoB = golesEquipoB;
+    }
 
+    
     // Getters y setters opcionales si usas @Data o similares
 }

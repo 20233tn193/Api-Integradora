@@ -14,11 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 import gtf.integradora.dto.RegistroPartidoDTO;
 import gtf.integradora.dto.ReprogramarPartidoDTO;
+import gtf.integradora.entity.Jugador;
 import gtf.integradora.entity.Partido;
 import gtf.integradora.entity.PartidoDTO;
 import gtf.integradora.services.PartidoGeneratorService;
 import gtf.integradora.services.PartidoService;
 import gtf.integradora.repository.EquipoRepository;
+import gtf.integradora.repository.JugadorRepository;
+import gtf.integradora.repository.PartidoRepository;
 
 @RestController
 @RequestMapping("/api/partidos")
@@ -126,15 +129,33 @@ public class PartidoController {
                 dto.nombreArbitro = p.getNombreArbitro();
                 dto.fecha = p.getFecha();
                 dto.hora = p.getHora();
-
+            
                 equipoRepository.findByIdAndEliminadoFalse(p.getEquipoAId()).ifPresent(eqA -> {
                     dto.logoEquipoA = eqA.getLogoUrl();
                 });
-
+            
                 equipoRepository.findByIdAndEliminadoFalse(p.getEquipoBId()).ifPresent(eqB -> {
                     dto.logoEquipoB = eqB.getLogoUrl();
                 });
-
+            
+                // Agregar goles si existe registro
+                int golesA = 0;
+                int golesB = 0;
+                if (p.getRegistro() != null) {
+                    golesA = p.getRegistro().stream()
+                            .filter(r -> r.getEquipoId().equals(p.getEquipoAId()))
+                            .mapToInt(r -> r.getGoles() == null ? 0 : r.getGoles())
+                            .sum();
+                
+                    golesB = p.getRegistro().stream()
+                            .filter(r -> r.getEquipoId().equals(p.getEquipoBId()))
+                            .mapToInt(r -> r.getGoles() == null ? 0 : r.getGoles())
+                            .sum();
+                }
+            
+                dto.golesEquipoA = golesA;
+                dto.golesEquipoB = golesB;
+            
                 return dto;
             }).toList();
 
@@ -143,4 +164,32 @@ public class PartidoController {
 
         return ResponseEntity.ok(calendarioDTO);
     }
+
+    @RestController
+public class PartidoExtraController {
+
+    private final PartidoRepository partidoRepository;
+    private final JugadorRepository jugadorRepository;
+
+    public PartidoExtraController(PartidoRepository partidoRepository, JugadorRepository jugadorRepository) {
+        this.partidoRepository = partidoRepository;
+        this.jugadorRepository = jugadorRepository;
+    }
+
+    @GetMapping("/api/partidos/completo/{partidoId}")
+    public ResponseEntity<RegistroPartidoDTO> obtenerPartidoCompleto(@PathVariable String partidoId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new RuntimeException("Partido no encontrado"));
+
+        List<Jugador> jugadoresLocal = jugadorRepository.findByEquipoIdAndEliminadoFalse(partido.getEquipoAId());
+        List<Jugador> jugadoresVisitante = jugadorRepository.findByEquipoIdAndEliminadoFalse(partido.getEquipoBId());
+
+        RegistroPartidoDTO dto = new RegistroPartidoDTO();
+        dto.setRegistro(partido.getRegistro());
+        dto.setJugadoresLocal(jugadoresLocal);
+        dto.setJugadoresVisitante(jugadoresVisitante);
+
+        return ResponseEntity.ok(dto);
+    }
+}
 } 

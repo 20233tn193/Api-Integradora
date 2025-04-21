@@ -258,7 +258,7 @@ public class PartidoService {
     }
 
     // Generar los enfrentamientos para la nueva jornada
-    @SuppressWarnings("unused")
+
     private List<Partido> generarEnfrentamientos(List<Equipo> ganadores, List<Equipo> perdedores, int jornada) {
         // Ejemplo básico de cómo emparejar a los equipos en partidos
         List<Partido> partidos = new ArrayList<>();
@@ -278,6 +278,12 @@ public class PartidoService {
     public Partido registrarResultado(String partidoId, List<RegistroJugador> registro) {
         Partido partido = partidoRepository.findByIdAndEliminadoFalse(partidoId)
                 .orElseThrow(() -> new RuntimeException("Partido no encontrado"));
+
+        for (RegistroJugador r : registro) {
+            if (r.getEquipoId() == null || r.getEquipoId().isEmpty()) {
+                throw new RuntimeException("Falta equipoId en registro de jugador " + r.getJugadorId());
+            }
+        }
 
         for (RegistroJugador r : registro) {
             Tarjeta tarjeta = tarjetaRepository.findByJugadorIdAndTorneoId(r.getJugadorId(), partido.getTorneoId())

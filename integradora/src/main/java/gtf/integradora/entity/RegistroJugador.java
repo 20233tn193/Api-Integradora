@@ -3,16 +3,18 @@ package gtf.integradora.entity;
 public class RegistroJugador {
 
     private String jugadorId;
+    private String equipoId;
     private boolean asistio;
-    private int goles;
-    private int amarillas;
-    private int rojas;
+    private Integer goles;
+    private Integer amarillas;
+    private Integer rojas;
     private boolean suspendido = false;
 
     public RegistroJugador() {
     }
 
-    public RegistroJugador(String jugadorId, boolean asistio, int goles, int amarillas, int rojas, boolean suspendido) {
+    public RegistroJugador(String jugadorId, boolean asistio, Integer goles, Integer amarillas, Integer rojas,
+            boolean suspendido) {
         this.jugadorId = jugadorId;
         this.asistio = asistio;
         this.goles = goles;
@@ -20,7 +22,6 @@ public class RegistroJugador {
         this.rojas = rojas;
         this.suspendido = suspendido;
     }
-    
 
     public boolean isSuspendido() {
         return suspendido;
@@ -46,27 +47,35 @@ public class RegistroJugador {
         this.asistio = asistio;
     }
 
-    public int getGoles() {
+    public String getEquipoId() {
+        return equipoId;
+    }
+
+    public void setEquipoId(String equipoId) {
+        this.equipoId = equipoId;
+    }
+
+    public Integer getGoles() {
         return goles;
     }
 
-    public void setGoles(int goles) {
+    public void setGoles(Integer goles) {
         this.goles = goles;
     }
 
-    public int getAmarillas() {
+    public Integer getAmarillas() {
         return amarillas;
     }
 
-    public void setAmarillas(int amarillas) {
+    public void setAmarillas(Integer amarillas) {
         this.amarillas = amarillas;
     }
 
-    public int getRojas() {
+    public Integer getRojas() {
         return rojas;
     }
 
-    public void setRojas(int rojas) {
+    public void setRojas(Integer rojas) {
         this.rojas = rojas;
     }
 

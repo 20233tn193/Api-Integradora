@@ -84,71 +84,83 @@ public class SecurityConfig {
     @Profile("prod")
     public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-                // Swagger
-                .requestMatchers(
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-resources/**",
-                        "/swagger-ui.html",
-                        "/webjars/**"
-                ).permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        // Swagger
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/swagger-ui.html",
+                                "/webjars/**")
+                        .permitAll()
 
-                // Rutas públicas
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/estadisticas/**").permitAll()
-                .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/torneos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
+                        // Rutas públicas
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/estadisticas/**").permitAll()
+                        .requestMatchers("/api/partidos/torneo/**", "/api/partidos/calendario/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/partidos/completo/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/partidos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/torneos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/torneos/{id}").permitAll()
 
-                // Pagos públicos
-                .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/pagos/detallados").hasAnyAuthority("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
+                        // Pagos públicos
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/detalles").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/detalles/torneo/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/detallados").hasAuthority("ADMIN")
 
-                // Pagos accesibles por DUEÑO
-                .requestMatchers("/api/pagos/dueno/**").hasAuthority("DUENO")
+                        // Pagos accesibles por DUEÑO
+                        .requestMatchers("/api/pagos/dueno/**").hasAuthority("DUENO")
 
-                // 📄 Permitir DUENO descargar credenciales PDF
-                .requestMatchers(HttpMethod.GET, "/api/equipos/{equipoId}/credenciales").hasAnyAuthority("DUENO", "ADMIN")
+                        // 📄 Permitir DUENO descargar credenciales PDF
+                        .requestMatchers(HttpMethod.GET, "/api/equipos/{equipoId}/credenciales")
+                        .hasAnyAuthority("DUENO", "ADMIN")
 
-                // ✅ Rutas específicas permitidas para DUEÑO
-                .requestMatchers(HttpMethod.GET, "/api/equipos/dueño/**").hasAnyAuthority("DUENO", "ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/equipos/torneo-con-dueno/**").hasAnyAuthority("DUENO", "ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/jugadores/equipo/**").hasAnyAuthority("DUENO", "ARBITRO", "ADMIN")
-                .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
+                        // ✅ Rutas específicas permitidas para DUEÑO
+                        .requestMatchers(HttpMethod.GET, "/api/equipos/dueño/**").hasAnyAuthority("DUENO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/equipos/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/equipos/torneo-con-dueno/**")
+                        .hasAnyAuthority("DUENO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/jugadores/equipo/**")
+                        .hasAnyAuthority("DUENO", "ARBITRO", "ADMIN")
+                        .requestMatchers("/api/duenos/**").hasAnyAuthority("ADMIN", "DUENO")
 
-                // Pagos restringidos solo para ADMIN
-                .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
+                        // Pagos restringidos solo para ADMIN
+                        .requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
 
-                // Otras rutas solo para ADMIN
-                .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+                        // Otras rutas solo para ADMIN
+                        .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
 
-                // ✅ Permitir árbitro ver su propia info (DEBE IR ANTES)
-                .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
+                        // ✅ Permitir árbitro ver su propia info (DEBE IR ANTES)
+                        .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
 
-                .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
-                .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
-                .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
-                .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
-                .requestMatchers("/api/partidos/**").hasAuthority("ARBITRO")
+                        // ✅ Solo PUT /api/partidos/registrar-resultado/** para árbitros
+                        .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
 
-                // ⛔ El resto de /api/equipos/** solo para ADMIN
-                .requestMatchers(HttpMethod.POST, "/api/equipos").hasAnyAuthority("DUENO", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/equipos/**").hasAnyAuthority("DUENO", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/equipos/inscribir-existente").hasAuthority("DUENO")
-                .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
-                
+                        // ❌ El resto de métodos en /api/partidos/** sí requiere ser árbitro
+                        // ✅ Solo los métodos sensibles requieren autorización
+                        .requestMatchers(HttpMethod.POST, "/api/partidos/**").hasAuthority("ARBITRO")
+                        .requestMatchers(HttpMethod.PUT, "/api/partidos/**").hasAuthority("ARBITRO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/partidos/**").hasAuthority("ADMIN")
 
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),
-                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
-            .formLogin(form -> form.disable())
-            .logout(logout -> logout.disable());
+                        // ⛔ El resto de /api/equipos/** solo para ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/equipos").hasAnyAuthority("DUENO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/equipos/**").hasAnyAuthority("DUENO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/equipos/inscribir-existente").hasAuthority("DUENO")
+                        .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
+
+                        // Otros
+                        .anyRequest().authenticated())
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable());
 
         return http.build();
     }
+
 }

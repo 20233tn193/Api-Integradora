@@ -3,10 +3,13 @@ package gtf.integradora.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import gtf.integradora.entity.Arbitro;
+import gtf.integradora.entity.Partido;
 import gtf.integradora.repository.ArbitroRepository;
+import gtf.integradora.repository.PartidoRepository;
 
 @Service
 public class ArbitroService {
@@ -52,4 +55,10 @@ public class ArbitroService {
     public Optional<Arbitro> obtenerPorUsuarioId(String idUsuario) {
         return arbitroRepository.findByIdUsuario(idUsuario);
     }
+    @Autowired
+private PartidoRepository partidoRepository;
+
+public List<Partido> obtenerPartidosAsignados(String arbitroId) {
+    return partidoRepository.findByArbitroIdAndEliminadoFalse(arbitroId);
+}
 }

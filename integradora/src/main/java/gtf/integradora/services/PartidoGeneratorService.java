@@ -4,25 +4,8 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import gtf.integradora.entity.Arbitro;
-import gtf.integradora.entity.Campo;
-import gtf.integradora.entity.Enfrentamiento;
-import gtf.integradora.entity.Equipo;
-import gtf.integradora.entity.Jugador;
-import gtf.integradora.entity.Pago;
-import gtf.integradora.entity.Partido;
-import gtf.integradora.entity.PartidoScheduler;
-import gtf.integradora.entity.RegistroJugador;
-import gtf.integradora.entity.TablaPosicion;
-import gtf.integradora.entity.Torneo;
-import gtf.integradora.repository.ArbitroRepository;
-import gtf.integradora.repository.CampoRepository;
-import gtf.integradora.repository.EquipoRepository;
-import gtf.integradora.repository.JugadorRepository;
-import gtf.integradora.repository.PagoRepository;
-import gtf.integradora.repository.PartidoRepository;
-import gtf.integradora.repository.TablaPosicionRepository;
-import gtf.integradora.repository.TorneoRepository;
+import gtf.integradora.entity.*;
+import gtf.integradora.repository.*;
 
 @Service
 public class PartidoGeneratorService {
@@ -151,7 +134,8 @@ public class PartidoGeneratorService {
         }
 
         actualizarFaseEquipos(torneoId);
-        return partidoRepository.saveAll(nuevosPartidos);
+
+        return nuevosPartidos;
     }
 
     private String encontrarInvictoId(List<Equipo> equipos, List<Partido> partidos) {
@@ -202,6 +186,7 @@ public class PartidoGeneratorService {
         pagoRepository.save(pago);
     }
 
+ 
     private List<Equipo> obtenerEquiposGanadores(List<Equipo> equipos, List<Partido> partidos) {
         Map<String, Integer> victoriasPorEquipo = new HashMap<>();
         Set<String> equiposQueJugaron = new HashSet<>();

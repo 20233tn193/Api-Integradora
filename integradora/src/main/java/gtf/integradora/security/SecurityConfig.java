@@ -130,20 +130,20 @@ public class SecurityConfig {
                         // Otras rutas solo para ADMIN
                         .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
 
-                        // ✅ Permitir árbitro ver su propia info (DEBE IR ANTES)
-                        .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
-
-                        .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
+                // ✅ Permitir árbitro ver su propia info (DEBE IR ANTES)
+                .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/arbitros/{id}/partidos").hasAuthority("ADMIN")
+                .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")
 
                         // ✅ Solo PUT /api/partidos/registrar-resultado/** para árbitros
                         .requestMatchers("/api/partidos/registrar-resultado/**").hasAuthority("ARBITRO")
 
                         // ❌ El resto de métodos en /api/partidos/** sí requiere ser árbitro
                         // ✅ Solo los métodos sensibles requieren autorización
-                        .requestMatchers(HttpMethod.POST, "/api/partidos/**").hasAuthority("ARBITRO")
+                        .requestMatchers(HttpMethod.POST, "/api/partidos/**").hasAnyAuthority("ADMIN","ARBITRO")
                         .requestMatchers(HttpMethod.PUT, "/api/partidos/**").hasAuthority("ARBITRO")
                         .requestMatchers(HttpMethod.DELETE, "/api/partidos/**").hasAuthority("ADMIN")
 
@@ -153,6 +153,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/equipos/inscribir-existente").hasAuthority("DUENO")
                         .requestMatchers("/api/equipos/**").hasAuthority("ADMIN")
 
+// Pagos restringidos solo para ADMIN
+.requestMatchers("/api/pagos/**").hasAuthority("ADMIN")
                         // Otros
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil, usuarioRepository),

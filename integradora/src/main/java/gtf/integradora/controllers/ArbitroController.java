@@ -1,6 +1,7 @@
 package gtf.integradora.controllers;
 
 import gtf.integradora.entity.Arbitro;
+import gtf.integradora.entity.Partido;
 import gtf.integradora.entity.Usuario;
 import gtf.integradora.repository.UsuarioRepository;
 import gtf.integradora.services.ArbitroService;
@@ -168,5 +169,15 @@ public ResponseEntity<?> obtenerPorUsuarioId(@PathVariable String idUsuario) {
     }
 
     return ResponseEntity.ok(arbitro);
+}
+@GetMapping("/{id}/partidos")
+public ResponseEntity<?> obtenerPartidosPorArbitro(@PathVariable String id) {
+    try {
+        List<Partido> partidos = arbitroService.obtenerPartidosAsignados(id);
+        return ResponseEntity.ok(partidos);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al obtener los partidos del árbitro.");
+    }
 }
 }

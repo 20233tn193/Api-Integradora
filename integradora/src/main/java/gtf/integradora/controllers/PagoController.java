@@ -60,11 +60,13 @@ public class PagoController {
 
     @PutMapping("/{id}/aprobar")
     public ResponseEntity<Pago> aprobarPago(@PathVariable String id) {
+        System.out.println("🔍 ID recibido: " + id);
         return ResponseEntity.ok(pagoService.actualizarEstatus(id, "pagado"));
     }
 
     @PutMapping("/{id}/rechazar")
     public ResponseEntity<Pago> rechazarPago(@PathVariable String id) {
+        System.out.println("🔍 ID recibido: " + id);
         return ResponseEntity.ok(pagoService.actualizarEstatus(id, "rechazado"));
     }
 

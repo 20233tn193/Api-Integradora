@@ -130,12 +130,29 @@ public class PartidoGeneratorService {
         System.out.println("📍 Nuevos partidos generados: " + nuevosPartidos.size());
 
         for (Partido partido : nuevosPartidos) {
+            System.out.println("➡️ Intentando guardar partido:");
+            System.out.println("   🏟️ " + partido.getNombreEquipoA() + " vs " + partido.getNombreEquipoB());
+            System.out.println("   🎯 torneoId: " + partido.getTorneoId());
+            System.out.println("   📅 fecha: " + partido.getFecha() + " 🕒 hora: " + partido.getHora());
+            System.out.println("   ⚽ campo: " + partido.getCampoId() + " - " + partido.getNombreCancha());
+            System.out.println("   👨 árbitro: " + partido.getArbitroId() + " - " + partido.getNombreArbitro());
+            System.out.println("   estado: " + partido.getEstado() + ", jornada: " + partido.getJornada());
+            System.out.println("═══════════════════════════════════════");
+        }
+
+        for (Partido partido : nuevosPartidos) {
             crearPagosDePartido(partido);
         }
 
         actualizarFaseEquipos(torneoId);
 
-        return nuevosPartidos;
+        try {
+            return partidoRepository.saveAll(nuevosPartidos);
+        } catch (Exception e) {
+            System.err.println("❌ Error al guardar partidos:");
+            e.printStackTrace();
+            return List.of(); // evitar crash
+        }
     }
 
     private String encontrarInvictoId(List<Equipo> equipos, List<Partido> partidos) {
@@ -186,7 +203,6 @@ public class PartidoGeneratorService {
         pagoRepository.save(pago);
     }
 
- 
     private List<Equipo> obtenerEquiposGanadores(List<Equipo> equipos, List<Partido> partidos) {
         Map<String, Integer> victoriasPorEquipo = new HashMap<>();
         Set<String> equiposQueJugaron = new HashSet<>();

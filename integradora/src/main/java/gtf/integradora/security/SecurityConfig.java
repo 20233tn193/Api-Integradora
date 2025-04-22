@@ -134,6 +134,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/arbitros/usuario/**").hasAnyAuthority("ARBITRO", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/arbitros/{id}/partidos").hasAuthority("ADMIN")
                 .requestMatchers("/api/arbitros/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/api/campos/{id}").permitAll()
                 .requestMatchers("/api/campos/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/torneos/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/partidos/generar-jornada/**").hasAuthority("ADMIN")

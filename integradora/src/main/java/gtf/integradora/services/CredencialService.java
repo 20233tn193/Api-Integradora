@@ -86,26 +86,18 @@ public class CredencialService {
                     String base64 = jugador.getFotoUrl().split(",", 2)[1];
                     byte[] imageBytes = Base64.getDecoder().decode(base64);
                     BufferedImage baseImg = ImageIO.read(new ByteArrayInputStream(imageBytes));
-
-                    // Forzar rotación 90° a la derecha
-                    int w = baseImg.getWidth();
-                    int h = baseImg.getHeight();
-                    BufferedImage rotated = new BufferedImage(h, w, baseImg.getType());
-                    Graphics2D g2d = rotated.createGraphics();
-                    g2d.translate(h / 2.0, w / 2.0);
-                    g2d.rotate(Math.toRadians(90));
-                    g2d.translate(-w / 2.0, -h / 2.0);
-                    g2d.drawImage(baseImg, 0, 0, null);
-                    g2d.dispose();
-
+                
+                    BufferedImage corregida = corregirOrientacionVertical(baseImg);
                     ByteArrayOutputStream rotatedStream = new ByteArrayOutputStream();
-                    ImageIO.write(rotated, "jpg", rotatedStream);
+                    ImageIO.write(corregida, "jpg", rotatedStream);
                     foto = Image.getInstance(rotatedStream.toByteArray());
                 } else {
                     URL imageUrl = new URL(jugador.getFotoUrl());
                     BufferedImage baseImg = ImageIO.read(imageUrl);
+                
+                    BufferedImage corregida = corregirOrientacionVertical(baseImg);
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    ImageIO.write(baseImg, "jpg", stream);
+                    ImageIO.write(corregida, "jpg", stream);
                     foto = Image.getInstance(stream.toByteArray());
                 }
 

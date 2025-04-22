@@ -8,6 +8,7 @@ import gtf.integradora.services.ArbitroService;
 import gtf.integradora.util.EncryptUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -179,5 +180,12 @@ public ResponseEntity<?> obtenerPartidosPorArbitro(@PathVariable String id) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error al obtener los partidos del árbitro.");
     }
+}
+@PutMapping("/{id}/estado")
+@PreAuthorize("hasAuthority('ADMIN')")
+public ResponseEntity<?> cambiarEstado(@PathVariable String id, @RequestBody Map<String, Object> payload) {
+    Boolean eliminado = (Boolean) payload.get("eliminado");
+    arbitroService.cambiarEstado(id, eliminado);
+    return ResponseEntity.ok().build();
 }
 }

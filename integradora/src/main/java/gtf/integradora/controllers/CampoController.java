@@ -77,4 +77,11 @@ public class CampoController {
         campoService.eliminarCampo(id);
         return ResponseEntity.noContent().build();
     }
+    @PutMapping("/{id}/estado")
+@PreAuthorize("hasAuthority('ADMIN')")
+public ResponseEntity<Void> cambiarEstadoCampo(@PathVariable String id, @RequestBody Map<String, Object> payload) {
+    Boolean eliminado = (Boolean) payload.get("eliminado");
+    campoService.cambiarEstadoCampo(id, eliminado);
+    return ResponseEntity.ok().build();
+}
 }

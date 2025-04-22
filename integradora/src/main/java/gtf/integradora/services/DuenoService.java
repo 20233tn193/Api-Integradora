@@ -22,7 +22,7 @@ public class DuenoService {
     }
 
     public List<Dueno> obtenerTodos() {
-        return duenoRepository.findByEliminadoFalse();
+        return duenoRepository.findAll(); // ✅ trae todos, incluso los eliminados
     }
 
     public Optional<Dueno> obtenerPorId(String id) {
@@ -50,5 +50,10 @@ public class DuenoService {
     public Optional<Dueno> obtenerPorIdUsuario(String idUsuario) {
         return duenoRepository.findByIdUsuario(idUsuario);
     }
-
+    public void cambiarEstado(String id, boolean eliminado) {
+        Dueno dueno = duenoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Dueño no encontrado"));
+        dueno.setEliminado(eliminado);
+        duenoRepository.save(dueno);
+    }
 }

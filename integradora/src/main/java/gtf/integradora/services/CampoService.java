@@ -25,7 +25,7 @@ public class CampoService {
     }
 
     public List<Campo> obtenerTodos() {
-        return campoRepository.findByEliminadoFalse();
+        return campoRepository.findAll(); // ✅ Devuelve TODOS los campos, incluso los eliminados
     }
 
     public Optional<Campo> obtenerPorId(String id) {
@@ -75,6 +75,12 @@ public class CampoService {
         Campo campo = campoRepository.findByIdAndEliminadoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Campo no encontrado"));
         campo.setEliminado(true);
+        campoRepository.save(campo);
+    }
+    public void cambiarEstadoCampo(String id, boolean eliminado) {
+        Campo campo = campoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Campo no encontrado"));
+        campo.setEliminado(eliminado);
         campoRepository.save(campo);
     }
 }

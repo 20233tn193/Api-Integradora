@@ -26,7 +26,7 @@ public class ArbitroService {
     }
 
     public List<Arbitro> obtenerTodos() {
-        return arbitroRepository.findByEliminadoFalse();
+        return arbitroRepository.findAll(); // ✅ Devuelve árbitros habilitados e inhabilitados
     }
 
     public Optional<Arbitro> obtenerPorId(String id) {
@@ -60,5 +60,11 @@ private PartidoRepository partidoRepository;
 
 public List<Partido> obtenerPartidosAsignados(String arbitroId) {
     return partidoRepository.findByArbitroIdAndEliminadoFalse(arbitroId);
+}
+public void cambiarEstado(String id, boolean eliminado) {
+    Arbitro arbitro = arbitroRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Árbitro no encontrado"));
+    arbitro.setEliminado(eliminado);
+    arbitroRepository.save(arbitro);
 }
 }

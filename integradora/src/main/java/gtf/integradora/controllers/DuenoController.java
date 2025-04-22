@@ -3,6 +3,7 @@ package gtf.integradora.controllers;
 import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import gtf.integradora.entity.Dueno;
@@ -127,5 +128,12 @@ public class DuenoController {
         usuarioRepository.save(usuario);
         return ResponseEntity.ok("Usuario actualizado correctamente");
     }
+    @PutMapping("/{id}/estado")
+@PreAuthorize("hasAuthority('ADMIN')")
+public ResponseEntity<?> cambiarEstado(@PathVariable String id, @RequestBody Map<String, Object> payload) {
+    Boolean eliminado = (Boolean) payload.get("eliminado");
+    duenoService.cambiarEstado(id, eliminado);
+    return ResponseEntity.ok().build();
+}
 
 }
